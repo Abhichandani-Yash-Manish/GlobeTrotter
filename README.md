@@ -6,6 +6,7 @@ The product’s visual language is an editorial transit atlas: ticket codes, rou
 
 ## Judge-ready demonstration
 
+- Production: `https://globetrotter-vert-ten.vercel.app`
 - App: `http://localhost:3000`
 - Traveler: `demo@globetrotter.com` / `password123`
 - Collaborator: `admin@globetrotter.com` / `admin123`
@@ -59,6 +60,19 @@ Open `http://localhost:3000`.
 
 For a deliberate local reset, `npm run reset-demo` recreates the SQLite demo database. It permanently removes that local database’s current data and must never be pointed at production.
 
+## Vercel deployment
+
+The production application keeps the SQLite data model but uses Turso/libSQL so writes survive Vercel's serverless instances. Local development continues to use the repository's `file:` database.
+
+```bash
+vercel link
+vercel integration add tursocloud/database
+vercel env pull .env.local
+npm run db:bootstrap:turso
+```
+
+`db:bootstrap:turso` applies the committed migrations and demo seed only when the remote database has no `User` table. On an initialized database it performs a read-only content check and refuses to reset data. Add `AUTH_SECRET` and `AUTH_TRUST_HOST=true` to the Production, Preview, and Development environments before deploying.
+
 ## Verification
 
 ```bash
@@ -85,6 +99,7 @@ flowchart LR
   Access --> Prisma[Prisma 7]
   Domain --> Prisma
   Prisma --> SQLite[(Local SQLite)]
+  Prisma --> Turso[(Production Turso libSQL)]
   Geo[Optional Geoapify routing] --> Cache[(Route segment cache)]
   Cache --> Domain
   Tiles[OpenFreeMap tiles] --> UI
@@ -162,7 +177,7 @@ average per day = spent / inclusive trip days
 
 ## Deliberate scope
 
-The optional admin dashboard, live booking, currency conversion, real-time cursors/chat, and travel-document vault are excluded. SQLite is the authoritative judged environment because it offers migrations, constraints, indexes, transactions, and a repeatable offline demo with no service setup.
+The optional admin dashboard, live booking, currency conversion, real-time cursors/chat, and travel-document vault are excluded. SQLite remains the authoritative local judged environment because it offers migrations, constraints, indexes, transactions, and a repeatable offline demo. Production uses Turso's libSQL-compatible hosted SQLite so the same relational model remains durable on Vercel.
 
 `npm audit` currently traces three high advisories to one `deepmerge-ts` recursive-object advisory in Prisma’s CLI/configuration dependency chain. npm proposes a breaking Prisma 6 downgrade; the project retains its tested Prisma 7.9.1 adapter setup and documents the advisory for production re-evaluation.
 
