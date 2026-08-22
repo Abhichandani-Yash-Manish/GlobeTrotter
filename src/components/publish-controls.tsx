@@ -10,6 +10,7 @@ export function PublishControls({ tripId, initialPublic, publicId }: { tripId: s
   const [shareId, setShareId] = useState(publicId);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageTone, setMessageTone] = useState<'success' | 'error'>('success');
 
   async function togglePublish() {
     setBusy(true);
@@ -21,8 +22,10 @@ export function PublishControls({ tripId, initialPublic, publicId }: { tripId: s
       });
       setIsPublic(result.isPublic);
       setShareId(result.publicId);
+      setMessageTone('success');
       setMessage(result.isPublic ? 'Published—your share page is live.' : 'Trip is private again.');
     } catch (error) {
+      setMessageTone('error');
       setMessage(error instanceof Error ? error.message : 'Publishing failed.');
     } finally {
       setBusy(false);
@@ -32,6 +35,7 @@ export function PublishControls({ tripId, initialPublic, publicId }: { tripId: s
   async function copyLink() {
     if (!shareId) return;
     await navigator.clipboard.writeText(`${window.location.origin}/share/${shareId}`);
+    setMessageTone('success');
     setMessage('Share link copied.');
   }
 
@@ -42,7 +46,7 @@ export function PublishControls({ tripId, initialPublic, publicId }: { tripId: s
         {isPublic ? 'Published' : 'Publish trip'}
       </button>
       {isPublic && <button className="button button-ghost" type="button" onClick={copyLink}><Copy size={16} /> Copy link</button>}
-      <StatusMessage message={message} />
+      <StatusMessage message={message} tone={messageTone} stamp={message === 'Published—your share page is live.'} />
     </div>
   );
 }

@@ -54,10 +54,13 @@ function SortableStop({
   busy: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: stop.id });
+  const cardTransition = [transition, 'box-shadow .2s var(--route-ease)', 'border-color .2s ease', 'background .2s ease']
+    .filter(Boolean)
+    .join(', ');
   return (
     <article
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      style={{ transform: CSS.Transform.toString(transform), transition: cardTransition }}
       className={`stop-card ${selected ? 'stop-card-selected' : ''} ${isDragging ? 'is-dragging' : ''}`}
     >
       <div className="stop-card-topline">
@@ -336,7 +339,7 @@ export function PlannerClient({
         </div>
       </div>
 
-      <StatusMessage message={message} tone={messageTone} />
+      <StatusMessage message={message} tone={messageTone} stamp={message === 'Trip published. The share link is live.'} />
       <div className="planner-mobile-route"><RouteRibbon stops={detail.stops} health={detail.health} compact /></div>
 
       <div className="planner-grid">
