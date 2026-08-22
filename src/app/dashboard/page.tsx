@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, Compass, MapPin, Plus, WalletCards } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CalendarDays, Compass, MapPin, Plus, Share2, WalletCards } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { ImageWithFallback } from '@/components/image-with-fallback';
 import { dateKey } from '@/lib/domain';
@@ -12,19 +12,26 @@ export const metadata: Metadata = { title: 'Dashboard' };
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const [trips, destinations] = await Promise.all([
+  const [trips, destinations, savedDestinations] = await Promise.all([
     prisma.trip.findMany({
-      where: { userId: user.id },
-      include: { stops: { include: { city: true, activities: { include: { activity: true } } }, orderBy: { order: 'asc' } }, expenses: true },
-      orderBy: { startDate: 'asc' },
-      take: 6,
+      where: { OR: [{ userId: user.id }, { members: { some: { userId: user.id } } }] },
+      include: { stops: { include: { city: true, activities: { include: { activity: true } } }, orderBy: { order: 'asc' } }, expenses: true, members: { where: { userId: user.id }, select: { role: true } } },
+      orderBy: { updatedAt: 'desc' },
+      take: 8,
     }),
     prisma.city.findMany({ orderBy: [{ popularity: 'desc' }, { costIndex: 'asc' }], take: 4 }),
+    prisma.savedDestination.findMany({ where: { userId: user.id }, include: { city: true }, orderBy: { createdAt: 'desc' }, take: 4 }),
   ]);
-  const nextTrip = trips.find((trip) => trip.endDate >= new Date()) ?? trips[0];
+  const chronologicalTrips = [...trips].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  const nextTrip = chronologicalTrips.find((trip) => trip.endDate >= new Date()) ?? chronologicalTrips[0];
   const plannedSpend = nextTrip
     ? nextTrip.expenses.reduce((total, expense) => total + expense.amount, 0) + nextTrip.stops.flatMap((stop) => stop.activities).reduce((total, item) => total + (item.cost ?? item.activity.cost), 0)
     : 0;
+  const warnings = nextTrip ? [
+    ...(nextTrip.stops.length === 0 ? ['Add the first destination'] : []),
+    ...(nextTrip.stops.some((stop) => stop.activities.length === 0) ? ['One or more stops have open days'] : []),
+    ...(nextTrip.budget !== null && plannedSpend > nextTrip.budget ? ['Planned costs exceed the trip budget'] : []),
+  ] : [];
 
   return (
     <AppShell>
@@ -43,6 +50,9 @@ export default async function DashboardPage() {
         ) : (
           <section className="empty-state featured-empty"><Compass size={36} /><h2>Your board is clear.</h2><p>Create the first trip and turn a destination idea into a route.</p><Link className="button button-primary" href="/trips/new">Plan the first trip</Link></section>
         )}
+        {warnings.length > 0 && <section className="dashboard-alert"><AlertTriangle size={20} /><div><strong>Route needs attention</strong>{warnings.map((warning) => <span key={warning}>{warning}</span>)}</div><Link href={`/trips/${nextTrip?.id}/edit`}>Resolve in planner <ArrowRight size={15} /></Link></section>}
+        <section className="dashboard-section"><div className="section-title-row"><div><div className="eyebrow">RECENT ROUTES · OWNED + SHARED</div><h2>Your working notebook.</h2></div><Link href="/trips">Open all <ArrowRight size={16} /></Link></div><div className="dashboard-trip-ledger">{trips.slice(0, 4).map((trip) => { const access = trip.userId === user.id ? 'OWNER' : trip.members[0]?.role ?? 'VIEWER'; const spent = trip.expenses.reduce((total, expense) => total + expense.amount, 0) + trip.stops.flatMap((stop) => stop.activities).reduce((total, item) => total + (item.cost ?? item.activity.cost), 0); return <article key={trip.id}><span className="ledger-code">{access === 'OWNER' ? 'OWN' : 'SHR'}</span><div><strong>{trip.name}</strong><small>{trip.stops.map((stop) => stop.city.name).join(' → ') || 'No stops yet'}</small></div><span><b>{formatMoney(spent)}</b><small>{dateKey(trip.startDate)}</small></span><Link href={`/trips/${trip.id}`}>{access === 'VIEWER' ? 'View' : 'Continue'} <ArrowRight size={14} /></Link></article>; })}</div></section>
+        {savedDestinations.length > 0 && <section className="dashboard-section"><div className="section-title-row"><div><div className="eyebrow">SAVED FOR LATER</div><h2>Ideas ready for a route.</h2></div><Link href="/settings">Manage saved <ArrowRight size={16} /></Link></div><div className="saved-dashboard-strip">{savedDestinations.map(({ city }) => <Link href={`/explore/${city.slug}`} key={city.id}><div className="saved-dashboard-image"><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="220px" /></div><span><strong>{city.name}</strong><small>{city.bestSeason ?? city.region}</small></span><Share2 size={15} /></Link>)}</div></section>}
         <section className="dashboard-section"><div className="section-title-row"><div><div className="eyebrow">RECOMMENDED FROM THE DATABASE</div><h2>Destinations with momentum.</h2></div><Link href="/explore">See all <ArrowRight size={16} /></Link></div><div className="recommendation-strip">{destinations.map((city) => <article key={city.id}><div className="recommendation-image"><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="(max-width: 760px) 80vw, 25vw" /></div><div><span>{city.region}</span><h3>{city.name}</h3><p>{city.country} · {city.popularity.toFixed(1)} popularity</p></div></article>)}</div></section>
       </div>
     </AppShell>
