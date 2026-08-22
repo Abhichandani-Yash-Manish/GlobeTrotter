@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { dateKey } from '@/lib/domain';
+import { requireTripAccess } from '@/lib/trip-access';
 
 function asDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
@@ -18,8 +19,10 @@ export async function validateStopPlacement({
   endDate: string;
   excludeStopId?: string;
 }) {
-  const trip = await prisma.trip.findFirst({
-    where: { id: tripId, userId },
+  const permission = await requireTripAccess(userId, tripId, 'edit');
+  if (!permission.allowed) return { error: 'Trip not found.' } as const;
+  const trip = await prisma.trip.findUnique({
+    where: { id: tripId },
     include: {
       stops: {
         where: excludeStopId ? { id: { not: excludeStopId } } : undefined,
@@ -51,8 +54,10 @@ export async function validateStopPlacement({
 }
 
 export async function getOwnedStop(userId: string, tripId: string, stopId: string) {
+  const permission = await requireTripAccess(userId, tripId, 'edit');
+  if (!permission.allowed) return null;
   return prisma.tripStop.findFirst({
-    where: { id: stopId, tripId, trip: { userId } },
+    where: { id: stopId, tripId },
     include: { trip: true, city: true },
   });
 }

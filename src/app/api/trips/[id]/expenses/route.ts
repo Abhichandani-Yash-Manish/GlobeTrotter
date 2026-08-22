@@ -4,6 +4,7 @@ import { apiData, apiError, parseRequest } from '@/lib/api';
 import { isDateWithin, toUtcDate } from '@/lib/planner-guards';
 import { getOwnedTripDetail } from '@/lib/trip-data';
 import { expenseSchema } from '@/lib/validation';
+import { requireTripAccess } from '@/lib/trip-access';
 
 export async function POST(
   request: Request,
@@ -14,9 +15,11 @@ export async function POST(
   const { id } = await params;
   const parsed = await parseRequest(request, expenseSchema);
   if (parsed.response) return parsed.response;
+  const permission = await requireTripAccess(session.user.id, id, 'edit');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Editing access is required.', 403);
 
-  const trip = await prisma.trip.findFirst({
-    where: { id, userId: session.user.id },
+  const trip = await prisma.trip.findUnique({
+    where: { id },
     select: { id: true, startDate: true, endDate: true },
   });
   if (!trip) return apiError('NOT_FOUND', 'Trip not found.', 404);

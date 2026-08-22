@@ -45,6 +45,8 @@ export async function POST(request: Request, { params }: RouteContext) {
         startDate: toUtcDate(parsed.data.startDate),
         endDate: toUtcDate(parsed.data.endDate),
         notes: parsed.data.notes || null,
+        arrivalMode: parsed.data.arrivalMode,
+        arrivalDurationMinutes: parsed.data.arrivalDurationMinutes ?? null,
         order,
       },
     });

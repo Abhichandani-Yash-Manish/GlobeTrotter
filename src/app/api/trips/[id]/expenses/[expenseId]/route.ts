@@ -6,6 +6,7 @@ import { dateKey } from '@/lib/domain';
 import { isDateWithin, toUtcDate } from '@/lib/planner-guards';
 import { getOwnedTripDetail } from '@/lib/trip-data';
 import { updateExpenseSchema } from '@/lib/validation';
+import { requireTripAccess } from '@/lib/trip-access';
 
 type RouteContext = { params: Promise<{ id: string; expenseId: string }> };
 
@@ -15,9 +16,11 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const { id, expenseId } = await params;
   const parsed = await parseRequest(request, updateExpenseSchema);
   if (parsed.response) return parsed.response;
+  const permission = await requireTripAccess(session.user.id, id, 'edit');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Editing access is required.', 403);
 
   const expense = await prisma.expense.findFirst({
-    where: { id: expenseId, tripId: id, trip: { userId: session.user.id } },
+    where: { id: expenseId, tripId: id },
     include: { trip: true },
   });
   if (!expense) return apiError('NOT_FOUND', 'Cost not found in this trip.', 404);
@@ -51,8 +54,10 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   const session = await auth();
   if (!session?.user?.id) return apiError('UNAUTHORIZED', 'Sign in to remove this cost.', 401);
   const { id, expenseId } = await params;
+  const permission = await requireTripAccess(session.user.id, id, 'edit');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Editing access is required.', 403);
   const expense = await prisma.expense.findFirst({
-    where: { id: expenseId, tripId: id, trip: { userId: session.user.id } },
+    where: { id: expenseId, tripId: id },
     select: { id: true },
   });
   if (!expense) return apiError('NOT_FOUND', 'Cost not found in this trip.', 404);

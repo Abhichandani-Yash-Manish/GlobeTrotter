@@ -59,6 +59,11 @@ const cities = [
   { name: 'Bruges', country: 'Belgium', region: 'Europe', costIndex: 3.0, popularity: 4.1, description: 'Medieval fairy tale — canals, chocolate, Belgian waffles, and cobblestone streets.', latitude: 51.2094, longitude: 3.2247, imageUrl: 'https://images.unsplash.com/photo-1559113202-c916b8e44373?w=600' },
   { name: 'Lhasa', country: 'China', region: 'Asia', costIndex: 2.0, popularity: 3.8, description: 'Roof of the world — Potala Palace, monasteries, and Tibetan Buddhist culture.', latitude: 29.6500, longitude: 91.1000, imageUrl: 'https://images.unsplash.com/photo-1567253508785-4abaeedae04d?w=600' },
   { name: 'Patagonia', country: 'Argentina', region: 'South America', costIndex: 3.0, popularity: 4.2, description: 'Epic glaciers, towering peaks, pristine wilderness, and the end of the world.', latitude: -50.3400, longitude: -72.2648, imageUrl: 'https://images.unsplash.com/photo-1531761535209-180857e963b9?w=600' },
+  { name: 'Ahmedabad', country: 'India', region: 'Asia', costIndex: 1.1, popularity: 4.0, description: 'A UNESCO-listed old city of pol houses, stepwells, textiles, modernist architecture, and Gujarati food traditions.', latitude: 23.0225, longitude: 72.5714, imageUrl: 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?w=600' },
+  { name: 'Udaipur', country: 'India', region: 'Asia', costIndex: 1.4, popularity: 4.4, description: 'The lake city pairs Mewar palaces, quiet ghats, miniature painting studios, and Aravalli sunsets.', latitude: 24.5854, longitude: 73.7125, imageUrl: 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=600' },
+  { name: 'Mumbai', country: 'India', region: 'Asia', costIndex: 2.2, popularity: 4.6, description: 'India’s kinetic coastal metropolis, shaped by Art Deco, cinema, historic markets, sea promenades, and remarkable food.', latitude: 19.0760, longitude: 72.8777, imageUrl: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=600' },
+  { name: 'Goa', country: 'India', region: 'Asia', costIndex: 1.8, popularity: 4.6, description: 'A layered Konkan escape of laterite forts, Portuguese churches, village kitchens, mangroves, and long Arabian Sea beaches.', latitude: 15.2993, longitude: 74.1240, imageUrl: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600' },
+  { name: 'Vadodara', country: 'India', region: 'Asia', costIndex: 1.0, popularity: 3.8, description: 'A cultured Gujarat city with Gaekwad-era palaces, museums, university avenues, and easy access to Champaner.', latitude: 22.3072, longitude: 73.1812, imageUrl: 'https://images.unsplash.com/photo-1609948543911-7f01ff385be5?w=600' },
 ];
 
 type CityActivities = {
@@ -142,21 +147,114 @@ const activitiesByCity: CityActivities = {
   ],
 };
 
-// Generate generic activities for cities without specific activities
-function generateActivities(cityName: string) {
-  const genericActivities = [
-    { name: `${cityName} City Walking Tour`, description: `Guided walking tour through the highlights of ${cityName}.`, category: 'Sightseeing', cost: 20, duration: 2.5, imageUrl: '' },
-    { name: `${cityName} Food Tour`, description: `Taste the best local cuisine and street food in ${cityName}.`, category: 'Food & Drink', cost: 35, duration: 2.5, imageUrl: '' },
-    { name: `${cityName} Museum Visit`, description: `Explore the top museum and learn about local history and art.`, category: 'Culture', cost: 15, duration: 2, imageUrl: '' },
-    { name: `Local Market Experience`, description: `Browse ${cityName}'s vibrant local market for souvenirs and crafts.`, category: 'Shopping', cost: 10, duration: 1.5, imageUrl: '' },
-  ];
-  return genericActivities;
+const landmarksByCity: Record<string, readonly string[]> = {
+  Paris: ['Musée de l’Orangerie', 'Palais Garnier', 'Le Marais', 'Sainte-Chapelle', 'Canal Saint-Martin', 'Marché des Enfants Rouges'],
+  Tokyo: ['Sensō-ji Temple', 'teamLab Borderless', 'Tokyo National Museum', 'Yanaka Ginza', 'Hamarikyu Gardens', 'Kappabashi Street'],
+  'New York': ['The Met Cloisters', 'High Line', 'Tenement Museum', 'Brooklyn Bridge Park', 'Whitney Museum', 'Chelsea Market'],
+  London: ['Westminster Abbey', 'Tate Modern', 'Borough Market', 'Kew Gardens', 'Churchill War Rooms', 'Greenwich Observatory'],
+  Barcelona: ['Casa Batlló', 'Palau de la Música Catalana', 'Montjuïc Castle', 'Picasso Museum', 'Sant Antoni Market', 'Bunkers del Carmel'],
+  Rome: ['Pantheon', 'Galleria Borghese', 'Appian Way', 'Capitoline Museums', 'Villa Doria Pamphilj', 'Testaccio Market'],
+  Bali: ['Tirta Empul', 'Jatiluwih Rice Terraces', 'Sekumpul Waterfall', 'Tanah Lot', 'Nusa Dua Reef', 'Sidemen Valley'],
+  Dubai: ['Al Fahidi Historical District', 'Museum of the Future', 'Dubai Creek Abra', 'Jumeirah Mosque', 'Alserkal Avenue', 'Ras Al Khor Sanctuary'],
+  Sydney: ['Royal Botanic Garden', 'Manly Ferry', 'Art Gallery of New South Wales', 'The Rocks', 'Taronga Zoo', 'Barangaroo Reserve'],
+  Bangkok: ['Wat Arun', 'Jim Thompson House', 'Talat Noi', 'Museum Siam', 'Benjakitti Forest Park', 'Chinatown Yaowarat'],
+  Istanbul: ['Topkapı Palace', 'Basilica Cistern', 'Süleymaniye Mosque', 'Galata Tower', 'Balat Quarter', 'Dolmabahçe Palace'],
+  Amsterdam: ['Rijksmuseum', 'Jordaan Quarter', 'Hortus Botanicus', 'NDSM Wharf', 'Rembrandt House', 'Foodhallen'],
+  Prague: ['Prague Castle', 'Charles Bridge', 'Jewish Museum', 'Vyšehrad', 'DOX Centre for Contemporary Art', 'Letná Park', 'Strahov Library', 'Klementinum', 'Veletržní Palace'],
+  Lisbon: ['Jerónimos Monastery', 'MAAT', 'Alfama', 'São Jorge Castle', 'Time Out Market', 'Miradouro da Senhora do Monte', 'Calouste Gulbenkian Museum', 'Belém Tower', 'LX Factory'],
+  Marrakech: ['Bahia Palace', 'Jardin Majorelle', 'Maison de la Photographie', 'Saadian Tombs', 'Le Jardin Secret', 'Agafay Desert Camp', 'Dar El Bacha Museum', 'Madrasa Ben Youssef', 'Musée Yves Saint Laurent'],
+  'Cape Town': ['Table Mountain Cableway', 'Robben Island', 'Kirstenbosch Gardens', 'Zeitz MOCAA', 'Boulders Beach', 'Bo-Kaap'],
+  'Rio de Janeiro': ['Christ the Redeemer', 'Sugarloaf Cable Car', 'Selarón Steps', 'Museum of Tomorrow', 'Tijuca National Park', 'Ipanema Beach'],
+  Singapore: ['Gardens by the Bay', 'National Gallery Singapore', 'Kampong Glam', 'MacRitchie Reservoir', 'Peranakan Museum', 'Tiong Bahru Market'],
+  Kyoto: ['Fushimi Inari Taisha', 'Kiyomizu-dera', 'Arashiyama Bamboo Grove', 'Nishiki Market', 'Philosopher’s Path', 'Nijō Castle'],
+  Santorini: ['Akrotiri Archaeological Site', 'Oia Castle', 'Ancient Thera', 'Fira to Oia Trail', 'Santo Wines', 'Red Beach'],
+  'Buenos Aires': ['Teatro Colón', 'MALBA', 'Recoleta Cemetery', 'San Telmo Market', 'El Ateneo Grand Splendid', 'Reserva Ecológica'],
+  Reykjavik: ['Hallgrímskirkja', 'Harpa Concert Hall', 'Perlan', 'Sky Lagoon', 'Árbær Open Air Museum', 'Grótta Lighthouse'],
+  Cusco: ['Sacsayhuamán', 'Qorikancha', 'San Pedro Market', 'Inka Museum', 'Tambomachay', 'Pisac Archaeological Park'],
+  Seoul: ['Gyeongbokgung Palace', 'Leeum Museum', 'Bukchon Hanok Village', 'Gwangjang Market', 'Namsan Seoul Tower', 'Seoul Forest'],
+  Vienna: ['Schönbrunn Palace', 'Belvedere Museum', 'Kunsthistorisches Museum', 'Naschmarkt', 'Prater', 'Austrian National Library'],
+  Hanoi: ['Temple of Literature', 'Vietnamese Women’s Museum', 'Hoàn Kiếm Lake', 'Thăng Long Citadel', 'Long Biên Bridge', 'Trúc Bạch Lake'],
+  Dubrovnik: ['Dubrovnik City Walls', 'Rector’s Palace', 'Fort Lovrijenac', 'Lokrum Island', 'Mount Srđ Cable Car', 'War Photo Limited'],
+  Petra: ['The Treasury', 'The Monastery', 'High Place of Sacrifice', 'Petra by Night', 'Little Petra', 'Royal Tombs'],
+  Cairo: ['Giza Pyramids', 'Grand Egyptian Museum', 'National Museum of Egyptian Civilization', 'Al-Azhar Mosque', 'Khan el-Khalili', 'Coptic Cairo'],
+  'Mexico City': ['Museo Frida Kahlo', 'National Museum of Anthropology', 'Palacio de Bellas Artes', 'Chapultepec Castle', 'Templo Mayor', 'Casa Luis Barragán'],
+  Vancouver: ['Stanley Park Seawall', 'Museum of Anthropology', 'Granville Island', 'Capilano Suspension Bridge', 'Vancouver Art Gallery', 'Grouse Mountain'],
+  Jaipur: ['Amber Fort', 'City Palace', 'Hawa Mahal', 'Jantar Mantar', 'Albert Hall Museum', 'Panna Meena ka Kund'],
+  Florence: ['Uffizi Gallery', 'Cathedral of Santa Maria del Fiore', 'Accademia Gallery', 'Boboli Gardens', 'Palazzo Vecchio', 'Mercato Centrale'],
+  Havana: ['Museo Nacional de Bellas Artes', 'Malecón', 'Fusterlandia', 'Castillo de la Real Fuerza', 'Callejón de Hamel', 'Plaza Vieja'],
+  Queenstown: ['Skyline Queenstown', 'Ben Lomond Track', 'Queenstown Gardens', 'Shotover Jet', 'Glenorchy Scenic Road', 'Kiwi Park'],
+  Zanzibar: ['Stone Town', 'House of Wonders', 'Jozani Forest', 'Prison Island', 'Darajani Market', 'Forodhani Gardens'],
+  Maldives: ['Banana Reef', 'National Museum Maldives', 'Hukuru Miskiy', 'Vaadhoo Bioluminescent Beach', 'Hanifaru Bay', 'Malé Fish Market'],
+  Budapest: ['Hungarian Parliament', 'Széchenyi Thermal Bath', 'Fisherman’s Bastion', 'House of Music Hungary', 'Great Market Hall', 'Memento Park'],
+  'Chiang Mai': ['Wat Phra That Doi Suthep', 'Wat Chedi Luang', 'Lanna Folklife Museum', 'Bua Tong Waterfalls', 'Jing Jai Market', 'Wiang Kum Kam'],
+  Edinburgh: ['Edinburgh Castle', 'National Museum of Scotland', 'Arthur’s Seat', 'Palace of Holyroodhouse', 'Dean Village', 'Camera Obscura'],
+  Cartagena: ['Castillo San Felipe de Barajas', 'Palace of Inquisition', 'Getsemaní', 'Rosario Islands', 'La Popa Convent', 'Museo del Oro Zenú'],
+  'Siem Reap': ['Angkor Wat', 'Bayon Temple', 'Ta Prohm', 'Banteay Srei', 'Angkor National Museum', 'Tonlé Sap Floating Village'],
+  'Amalfi Coast': ['Villa Rufolo', 'Path of the Gods', 'Amalfi Cathedral', 'Villa Cimbrone', 'Fiordo di Furore', 'Paper Museum Amalfi'],
+  Nairobi: ['Nairobi National Park', 'Giraffe Centre', 'Karen Blixen Museum', 'Nairobi National Museum', 'Karura Forest', 'Bomas of Kenya'],
+  Kathmandu: ['Swayambhunath', 'Boudhanath Stupa', 'Patan Durbar Square', 'Pashupatinath Temple', 'Garden of Dreams', 'Kopan Monastery'],
+  'San Francisco': ['Golden Gate Bridge', 'Alcatraz Island', 'de Young Museum', 'Ferry Building', 'Lands End Trail', 'Exploratorium'],
+  Medellín: ['Museo de Antioquia', 'Comuna 13 Escalators', 'Jardín Botánico', 'Parque Arví', 'Casa de la Memoria', 'Plaza Botero'],
+  Bruges: ['Groeningemuseum', 'Belfry of Bruges', 'Basilica of the Holy Blood', 'Begijnhof', 'Sint-Janshospitaal', 'De Halve Maan Brewery'],
+  Lhasa: ['Potala Palace', 'Jokhang Temple', 'Sera Monastery', 'Norbulingka', 'Tibet Museum', 'Drepung Monastery'],
+  Patagonia: ['Perito Moreno Glacier', 'Fitz Roy Trail', 'Torres del Paine', 'Laguna de los Tres', 'Tierra del Fuego National Park', 'Cueva de las Manos'],
+  Ahmedabad: ['Sabarmati Ashram', 'Adalaj Stepwell', 'Sidi Saiyyed Mosque', 'Calico Museum of Textiles', 'Manek Chowk', 'CEPT Architecture Campus', 'Auto World Vintage Car Museum', 'Hutheesing Jain Temple', 'Conflictorium'],
+  Udaipur: ['City Palace Udaipur', 'Lake Pichola Boat Ride', 'Bagore Ki Haveli', 'Sajjangarh Monsoon Palace', 'Ahar Cenotaphs', 'Shilpgram', 'Sajjangarh Biological Park', 'Vintage and Classic Car Museum', 'Saheliyon Ki Bari'],
+  Mumbai: ['Chhatrapati Shivaji Maharaj Vastu Sangrahalaya', 'Gateway of India', 'Elephanta Caves', 'Bandra Fort', 'Dr. Bhau Daji Lad Museum', 'Kala Ghoda', 'Mani Bhavan', 'Khotachiwadi', 'Sanjay Gandhi National Park'],
+  Goa: ['Basilica of Bom Jesus', 'Reis Magos Fort', 'Fontainhas', 'Salim Ali Bird Sanctuary', 'Cabo de Rama Fort', 'Museum of Goa', 'Chorao Island', 'Mario Miranda Gallery', 'Tambdi Surla Temple'],
+  Vadodara: ['Laxmi Vilas Palace', 'Baroda Museum', 'Kirti Mandir', 'EME Temple', 'Sayaji Garden', 'Champaner-Pavagadh Archaeological Park', 'Maharaja Fateh Singh Museum', 'Tambekar Wada', 'Aurobindo Ashram Vadodara'],
+};
+
+const showcaseCities = new Set(cities.slice(0, 15).map((city) => city.name).concat(['Ahmedabad', 'Udaipur', 'Mumbai', 'Goa', 'Vadodara']));
+const activityCategories = ['Sightseeing', 'Culture', 'Food & Drink', 'Nature', 'Shopping', 'Adventure'] as const;
+
+function slugify(value: string) {
+  return value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function cityMetadata(city: (typeof cities)[number]) {
+  const currencyByCountry: Record<string, string> = {
+    India: 'INR', France: 'EUR', Japan: 'JPY', 'United States': 'USD', 'United Kingdom': 'GBP', Spain: 'EUR', Italy: 'EUR',
+    Indonesia: 'IDR', Australia: 'AUD', Thailand: 'THB', Canada: 'CAD', Singapore: 'SGD', Argentina: 'ARS', Brazil: 'BRL',
+  };
+  return {
+    ...city,
+    slug: slugify(`${city.name}-${city.country}`),
+    bestSeason: city.region === 'Europe' ? 'April–June · September–October' : city.region === 'Asia' ? 'October–March' : 'March–May · September–November',
+    idealDays: showcaseCities.has(city.name) ? 4 : 3,
+    timezone: city.longitude !== null ? `UTC${Math.round(city.longitude / 15) >= 0 ? '+' : ''}${Math.round(city.longitude / 15)}` : null,
+    currencyCode: currencyByCountry[city.country] ?? 'USD',
+    dailyBudget: Math.round(city.costIndex * 48),
+    tags: JSON.stringify([city.region, city.costIndex <= 2 ? 'value' : 'signature', city.popularity >= 4.5 ? 'iconic' : 'curious']),
+    imageCredit: 'Unsplash contributor',
+    imageSourceUrl: city.imageUrl,
+  };
+}
+
+function buildActivities(city: (typeof cities)[number]) {
+  const existing = activitiesByCity[city.name] ?? [];
+  const target = showcaseCities.has(city.name) ? 9 : 6;
+  const additions = (landmarksByCity[city.name] ?? []).map((name, index) => ({
+    name,
+    description: `Spend time at ${name}, a distinctive ${city.name} place selected for its local story, setting, and traveller appeal.`,
+    category: activityCategories[index % activityCategories.length],
+    cost: Math.max(0, Math.round(city.costIndex * 6 + index * 3)),
+    duration: 1.5 + (index % 3) * 0.5,
+    imageUrl: city.imageUrl,
+  }));
+  const unique = [...existing, ...additions].filter((activity, index, all) => all.findIndex((item) => item.name === activity.name) === index);
+  return unique.slice(0, target);
 }
 
 async function main() {
   console.log('🌍 Seeding GlobeTrotter database...');
 
   // Clean existing data
+  await prisma.routeSegmentCache.deleteMany();
+  await prisma.passwordResetToken.deleteMany();
+  await prisma.tripInvite.deleteMany();
+  await prisma.tripMember.deleteMany();
+  await prisma.mediaAsset.deleteMany();
   await prisma.tripActivity.deleteMany();
   await prisma.expense.deleteMany();
   await prisma.savedDestination.deleteMany();
@@ -195,7 +293,7 @@ async function main() {
   // Create cities
   const createdCities: Record<string, City> = {};
   for (const city of cities) {
-    const created = await prisma.city.create({ data: city });
+    const created = await prisma.city.create({ data: cityMetadata(city) });
     createdCities[city.name] = created;
   }
   console.log(`✅ Created ${cities.length} cities`);
@@ -203,12 +301,20 @@ async function main() {
   // Create activities
   let activityCount = 0;
   for (const city of cities) {
-    const cityActivities = activitiesByCity[city.name] || generateActivities(city.name);
-    for (const activity of cityActivities) {
+    const cityActivities = buildActivities(city);
+    for (let activityIndex = 0; activityIndex < cityActivities.length; activityIndex++) {
+      const activity = cityActivities[activityIndex];
       await prisma.activity.create({
         data: {
           ...activity,
           cityId: createdCities[city.name].id,
+          address: `${activity.name}, ${city.name}, ${city.country}`,
+          latitude: city.latitude + ((activityIndex % 3) - 1) * 0.008,
+          longitude: city.longitude + ((activityIndex % 4) - 1.5) * 0.008,
+          accessibility: activityIndex % 3 === 0 ? 'Step-free access information available; confirm with venue.' : 'Contact the venue for current accessibility details.',
+          tags: JSON.stringify([activity.category.toLowerCase(), city.name.toLowerCase(), activity.cost === 0 ? 'free' : 'ticketed']),
+          imageCredit: 'Unsplash contributor',
+          imageSourceUrl: activity.imageUrl,
         },
       });
       activityCount++;
@@ -359,6 +465,55 @@ async function main() {
       coverImage: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800',
     },
   });
+
+  // A locally relevant showcase journey for the demo and judging flow.
+  const westStart = new Date(now.getFullYear(), now.getMonth() + 5, 2);
+  const westEnd = new Date(now.getFullYear(), now.getMonth() + 5, 10);
+  const westernTrip = await prisma.trip.create({
+    data: {
+      name: 'Western India Design Trail',
+      description: 'Stepwells, modernism, palace craft, coastal architecture, and regional food across Gujarat, Rajasthan, and Mumbai.',
+      startDate: westStart,
+      endDate: westEnd,
+      budget: 1800,
+      isPublic: true,
+      publicId: 'demo-western-india',
+      userId: demoUser.id,
+      coverImage: createdCities.Ahmedabad.imageUrl,
+    },
+  });
+  const westCities = ['Ahmedabad', 'Udaipur', 'Mumbai'];
+  for (let index = 0; index < westCities.length; index++) {
+    const cityName = westCities[index];
+    const stopStart = new Date(westStart.getTime() + index * 3 * 24 * 60 * 60 * 1000);
+    const stopEnd = index === westCities.length - 1 ? westEnd : new Date(stopStart.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const stop = await prisma.tripStop.create({
+      data: {
+        tripId: westernTrip.id,
+        cityId: createdCities[cityName].id,
+        startDate: stopStart,
+        endDate: stopEnd,
+        order: index,
+        arrivalMode: index === 2 ? 'flight' : 'train',
+        arrivalDurationMinutes: index === 0 ? null : index === 1 ? 300 : 85,
+        notes: index === 0 ? 'Begin with stepwells, pol houses, and modernist campuses.' : index === 1 ? 'Slow down for lake light and Mewar craft.' : 'Close on the harbour with Art Deco and coastal food.',
+      },
+    });
+    const activities = await prisma.activity.findMany({ where: { cityId: createdCities[cityName].id }, take: 3 });
+    for (let activityIndex = 0; activityIndex < activities.length; activityIndex++) {
+      await prisma.tripActivity.create({
+        data: {
+          tripStopId: stop.id,
+          activityId: activities[activityIndex].id,
+          date: new Date(stopStart.getTime() + activityIndex * 24 * 60 * 60 * 1000),
+          startTime: activityIndex === 0 ? '09:00' : '15:00',
+          duration: activities[activityIndex].duration,
+          cost: activities[activityIndex].cost,
+          order: activityIndex,
+        },
+      });
+    }
+  }
 
   // Save some destinations for demo user
   await prisma.savedDestination.createMany({

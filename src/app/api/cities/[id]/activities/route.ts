@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { apiData, apiError } from '@/lib/api';
+import { toActivityDto } from '@/lib/trip-data';
 
 export async function GET(
   request: Request,
@@ -29,5 +30,5 @@ export async function GET(
     where,
     orderBy: [{ category: 'asc' }, { cost: 'asc' }],
   });
-  return apiData(activities);
+  return apiData(activities.map(toActivityDto));
 }

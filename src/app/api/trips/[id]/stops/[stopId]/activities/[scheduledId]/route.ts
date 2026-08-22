@@ -6,6 +6,7 @@ import { dateKey } from '@/lib/domain';
 import { isDateWithin, toUtcDate } from '@/lib/planner-guards';
 import { getOwnedTripDetail } from '@/lib/trip-data';
 import { updateScheduledActivitySchema } from '@/lib/validation';
+import { requireTripAccess } from '@/lib/trip-access';
 
 type RouteContext = {
   params: Promise<{ id: string; stopId: string; scheduledId: string }>;
@@ -17,12 +18,14 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const { id, stopId, scheduledId } = await params;
   const parsed = await parseRequest(request, updateScheduledActivitySchema);
   if (parsed.response) return parsed.response;
+  const permission = await requireTripAccess(session.user.id, id, 'edit');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Editing access is required.', 403);
 
   const scheduled = await prisma.tripActivity.findFirst({
     where: {
       id: scheduledId,
       tripStopId: stopId,
-      tripStop: { tripId: id, trip: { userId: session.user.id } },
+      tripStop: { tripId: id },
     },
     include: { tripStop: true },
   });
@@ -47,11 +50,13 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   const session = await auth();
   if (!session?.user?.id) return apiError('UNAUTHORIZED', 'Sign in to remove this activity.', 401);
   const { id, stopId, scheduledId } = await params;
+  const permission = await requireTripAccess(session.user.id, id, 'edit');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Editing access is required.', 403);
   const scheduled = await prisma.tripActivity.findFirst({
     where: {
       id: scheduledId,
       tripStopId: stopId,
-      tripStop: { tripId: id, trip: { userId: session.user.id } },
+      tripStop: { tripId: id },
     },
     select: { id: true },
   });
