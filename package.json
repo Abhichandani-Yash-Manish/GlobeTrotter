@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "map:prepare": "node scripts/prepare-maplibre-worker.mjs",
+    "predev": "npm run map:prepare",
     "dev": "next dev",
+    "prebuild": "npm run map:prepare",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
@@ -19,7 +22,7 @@
     "reset-demo": "npm run db:reset",
     "verify:demo": "node scripts/verify-demo.mjs",
     "check": "npm run db:generate && npm run lint && npm run test && npm run build && npm run verify:demo",
-    "postinstall": "prisma generate"
+    "postinstall": "npm run map:prepare && prisma generate"
   },
   "engines": {
     "node": ">=24 <25"

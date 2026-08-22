@@ -20,6 +20,9 @@
 # production
 /build
 
+# generated MapLibre browser worker (recreated by map:prepare)
+/public/vendor/maplibre/
+
 # misc
 .DS_Store
 *.pem

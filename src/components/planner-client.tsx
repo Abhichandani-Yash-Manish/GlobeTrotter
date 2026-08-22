@@ -31,6 +31,7 @@ import {
   MapPin,
   Pencil,
   Plus,
+  RotateCcw,
   Search,
   Send,
   Settings2,
@@ -40,7 +41,7 @@ import {
   WalletCards,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { RouteRibbon } from '@/components/route-ribbon';
 import { RouteMap } from '@/components/route-map';
 import { StatusMessage } from '@/components/status-message';
@@ -51,6 +52,23 @@ import { ImageWithFallback } from '@/components/image-with-fallback';
 import { requestJson } from '@/lib/client-api';
 import { formatMoney } from '@/lib/format';
 import type { ActivityDto, CityDto, PlannerStop, RouteMapData, TripDetail } from '@/types/domain';
+
+type ActivityFilters = { q: string; category: string; maxCost: string; maxDuration: string };
+
+const EMPTY_ACTIVITY_FILTERS: ActivityFilters = { q: '', category: 'All', maxCost: '', maxDuration: '' };
+
+function activityQuery(filters: ActivityFilters) {
+  const params = new URLSearchParams();
+  if (filters.q.trim()) params.set('q', filters.q.trim());
+  if (filters.category !== 'All') params.set('category', filters.category);
+  if (filters.maxCost) params.set('maxCost', filters.maxCost);
+  if (filters.maxDuration) params.set('maxDuration', filters.maxDuration);
+  return params;
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
 
 function SortableStop({
   stop,
@@ -154,10 +172,12 @@ export function PlannerClient({
   const [mobileTab, setMobileTab] = useState<'plan' | 'map' | 'budget'>('plan');
   const [desktopChartsVisible, setDesktopChartsVisible] = useState(false);
   const [openPanel, setOpenPanel] = useState<'details' | 'crew' | null>(null);
-  const [activityFilters, setActivityFilters] = useState({ q: '', category: 'All', maxCost: '', maxDuration: '' });
+  const [activityFilters, setActivityFilters] = useState<ActivityFilters>(EMPTY_ACTIVITY_FILTERS);
+  const [activityCategories, setActivityCategories] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<'success' | 'error'>('success');
+  const activityRequestRef = useRef<AbortController | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -170,6 +190,14 @@ export function PlannerClient({
   const canEdit = detail.access === 'OWNER' || detail.access === 'EDITOR' || detail.access === undefined;
   const canPublish = detail.access === 'OWNER' || detail.access === undefined;
 
+  const selectMapStop = useCallback((stopId: string) => {
+    setSelectedStopId(stopId);
+    setActivityBoardOpen(false);
+    setActivities([]);
+    setActivityCategories([]);
+    setActivityFilters(EMPTY_ACTIVITY_FILTERS);
+  }, []);
+
   useEffect(() => {
     const query = window.matchMedia('(min-width: 901px)');
     const update = () => setDesktopChartsVisible(query.matches);
@@ -181,6 +209,32 @@ export function PlannerClient({
   function report(text: string, tone: 'success' | 'error' = 'success') {
     setMessage(text);
     setMessageTone(tone);
+  }
+
+  async function loadActivities(stop: PlannerStop, filters: ActivityFilters, refreshCategories = false) {
+    activityRequestRef.current?.abort();
+    const controller = new AbortController();
+    activityRequestRef.current = controller;
+    const params = activityQuery(filters);
+    setBusy(true);
+    try {
+      const nextActivities = await requestJson<ActivityDto[]>(
+        `/api/cities/${stop.cityId}/activities${params.size ? `?${params}` : ''}`,
+        { signal: controller.signal },
+      );
+      setActivities(nextActivities);
+      if (refreshCategories) {
+        setActivityCategories([...new Set(nextActivities.map((activity) => activity.category))].sort((left, right) => left.localeCompare(right)));
+      }
+      setMessage(null);
+    } catch (error) {
+      if (!isAbortError(error)) report(error instanceof Error ? error.message : 'Could not load activities.', 'error');
+    } finally {
+      if (activityRequestRef.current === controller) {
+        activityRequestRef.current = null;
+        setBusy(false);
+      }
+    }
   }
 
   async function updateDetail(work: () => Promise<TripDetail>, successMessage: string) {
@@ -272,34 +326,24 @@ export function PlannerClient({
   }
 
   async function browseActivities(stop: PlannerStop) {
+    const openingDifferentStop = selectedStopId !== stop.id;
+    const nextFilters = openingDifferentStop ? EMPTY_ACTIVITY_FILTERS : activityFilters;
     setSelectedStopId(stop.id);
     setActivityBoardOpen(true);
-    setBusy(true);
-    try {
-      const params = new URLSearchParams(Object.entries(activityFilters).filter(([, value]) => value && value !== 'All'));
-      setActivities(await requestJson<ActivityDto[]>(`/api/cities/${stop.cityId}/activities?${params}`));
-      setMessage(null);
-    } catch (error) {
-      report(error instanceof Error ? error.message : 'Could not load activities.', 'error');
-    } finally {
-      setBusy(false);
-    }
+    if (openingDifferentStop) setActivityFilters(EMPTY_ACTIVITY_FILTERS);
+    await loadActivities(stop, nextFilters, true);
   }
 
   async function filterActivities(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedStop) return;
-    const form = new FormData(event.currentTarget);
-    const filters = {
-      q: String(form.get('q') ?? ''), category: String(form.get('category') ?? 'All'),
-      maxCost: String(form.get('maxCost') ?? ''), maxDuration: String(form.get('maxDuration') ?? ''),
-    };
-    setActivityFilters(filters);
-    const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value && value !== 'All'));
-    setBusy(true);
-    try { setActivities(await requestJson<ActivityDto[]>(`/api/cities/${selectedStop.cityId}/activities?${params}`)); }
-    catch (error) { report(error instanceof Error ? error.message : 'Could not filter activities.', 'error'); }
-    finally { setBusy(false); }
+    await loadActivities(selectedStop, activityFilters);
+  }
+
+  async function resetActivityFilters() {
+    if (!selectedStop) return;
+    setActivityFilters(EMPTY_ACTIVITY_FILTERS);
+    await loadActivities(selectedStop, EMPTY_ACTIVITY_FILTERS, true);
   }
 
   async function updateStop(stop: PlannerStop, event: FormEvent<HTMLFormElement>) {
@@ -510,12 +554,20 @@ export function PlannerClient({
             </DndContext>
           )}
 
-          <div className="planner-map-region"><div className="canvas-heading"><div><span>LIVE ATLAS</span><p>Select a map node to focus its itinerary stop.</p></div><small>{mapData.source === 'geoapify' ? 'ROUTED' : 'GEODESIC ESTIMATE'}</small></div><RouteMap data={mapData} selectedStopId={selectedStopId} onSelectStop={setSelectedStopId} /></div>
+          <div className="planner-map-region"><div className="canvas-heading"><div><span>LIVE ATLAS</span><p>Select a map node to focus its itinerary stop.</p></div><small>{mapData.source === 'geoapify' ? 'ROUTED' : 'GEODESIC ESTIMATE'}</small></div><RouteMap data={mapData} selectedStopId={selectedStopId} onSelectStop={selectMapStop} /></div>
 
           {selectedStop && activityBoardOpen && (
             <section className="activity-board">
               <div className="section-kicker">CITY BOARD · {selectedStop.city.name.toUpperCase()}</div>
-              <form className="activity-filters" onSubmit={filterActivities}><label className="search-field"><Search size={15} /><input name="q" placeholder="Search activities" defaultValue={activityFilters.q} /></label><select name="category" defaultValue={activityFilters.category} aria-label="Activity category"><option>All</option><option>Sightseeing</option><option>Culture</option><option>Food & Drink</option><option>Nature</option><option>Shopping</option><option>Adventure</option></select><input name="maxCost" type="number" min="0" placeholder="Max $" aria-label="Maximum activity cost" defaultValue={activityFilters.maxCost} /><input name="maxDuration" type="number" min="0.5" step="0.5" placeholder="Max hours" aria-label="Maximum activity duration" defaultValue={activityFilters.maxDuration} /><button className="button button-dark button-small" type="submit" disabled={busy}><SlidersHorizontal size={14} /> Filter</button></form>
+              <form className="activity-filters" onSubmit={filterActivities} aria-label={`Filter ${selectedStop.city.name} activities`} aria-busy={busy}>
+                <label className="search-field"><Search size={15} /><input name="q" placeholder="Name, place, or idea" aria-label="Search activities" value={activityFilters.q} onChange={(event) => setActivityFilters((current) => ({ ...current, q: event.target.value }))} /></label>
+                <select name="category" value={activityFilters.category} onChange={(event) => setActivityFilters((current) => ({ ...current, category: event.target.value }))} aria-label="Activity category"><option>All</option>{activityCategories.map((category) => <option key={category}>{category}</option>)}</select>
+                <input name="maxCost" type="number" min="0" placeholder="Max $" aria-label="Maximum activity cost" value={activityFilters.maxCost} onChange={(event) => setActivityFilters((current) => ({ ...current, maxCost: event.target.value }))} />
+                <input name="maxDuration" type="number" min="0.5" step="0.5" placeholder="Max hours" aria-label="Maximum activity duration" value={activityFilters.maxDuration} onChange={(event) => setActivityFilters((current) => ({ ...current, maxDuration: event.target.value }))} />
+                <button className="button button-dark button-small" type="submit" disabled={busy}><SlidersHorizontal size={14} /> Apply</button>
+                <button className="filter-reset filter-reset-small" type="button" onClick={resetActivityFilters} disabled={busy || ![activityFilters.q.trim(), activityFilters.category !== 'All', activityFilters.maxCost, activityFilters.maxDuration].some(Boolean)}><RotateCcw size={13} /> Reset</button>
+              </form>
+              <div className="filter-result-bar activity-result-bar" role="status" aria-live="polite"><strong>{activities.length}</strong> activities found in {selectedStop.city.name}</div>
               <div className="activity-grid">
                 {activities.map((activity) => (
                   <article className="activity-card" key={activity.id}>
