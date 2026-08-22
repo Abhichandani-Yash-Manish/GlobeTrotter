@@ -18,7 +18,7 @@ export function RouteRibbon({
     <ol
       className={`route-ribbon ${compact ? 'route-ribbon-compact' : ''}`}
       aria-label="Trip route"
-      tabIndex={compact ? 0 : undefined}
+      tabIndex={0}
     >
       {stops.map((stop, index) => {
         const issues = health.filter((issue) => issue.stopId === stop.id);
