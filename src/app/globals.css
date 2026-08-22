@@ -417,7 +417,8 @@ summary::-webkit-details-marker { display: none; }
 .publish-controls .status-message { width: 100%; }
 .itinerary-page { padding-block: 35px 85px; }
 .itinerary-layout { display: grid; grid-template-columns: 215px minmax(400px, 1fr) 245px; gap: 18px; align-items: start; }
-.itinerary-route-card, .itinerary-budget-card { position: sticky; top: 95px; padding: 17px; border: 1px solid var(--line); border-radius: 6px; background: white; }
+.itinerary-layout > *, .itinerary-main, .itinerary-budget-visual { min-width: 0; }
+.itinerary-route-card, .itinerary-budget-card { position: sticky; top: 95px; min-width: 0; max-width: 100%; padding: 17px; border: 1px solid var(--line); border-radius: 6px; background: white; }
 .itinerary-route-card .route-ribbon { margin-top: 18px; }
 .view-toggle { display: inline-flex; margin-bottom: 12px; overflow: hidden; border: 1px solid var(--line); border-radius: 5px; background: white; }
 .view-toggle button { display: flex; align-items: center; gap: 6px; padding: 9px 13px; border: 0; background: white; cursor: pointer; font-size: .75rem; }
@@ -712,6 +713,9 @@ summary::-webkit-details-marker { display: none; }
   .trip-detail-overlay { justify-content: end; }
   .trip-detail-overlay h1 { font-size: 3.7rem; }
   .itinerary-page { width: min(100% - 20px, 1180px); }
+  .itinerary-route-card { overflow: hidden; }
+  .itinerary-route-card .route-ribbon { max-width: 100%; overscroll-behavior-inline: contain; }
+  .itinerary-budget-visual .budget-visuals { grid-template-columns: 1fr; }
   .calendar-grid { grid-template-columns: repeat(2, 1fr); }
   .timeline-row { grid-template-columns: 42px 46px 1fr; }
   .timeline-row > strong { grid-column: 3; }
