@@ -30,5 +30,5 @@ export const proxy = auth((request) => {
 });
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|globetrotter-mark.svg|globetrotter-wordmark.svg).*)'],
 };
