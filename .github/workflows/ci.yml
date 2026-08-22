@@ -1,0 +1,25 @@
+name: GlobeTrotter checks
+
+on:
+  push:
+    branches: [main, codex/globetrotter-core]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: file:./prisma/ci.db
+      AUTH_SECRET: ci-only-globetrotter-secret
+      AUTH_TRUST_HOST: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:migrate
+      - run: npm run db:seed
+      - run: npm run check
