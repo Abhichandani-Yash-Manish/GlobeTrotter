@@ -8,14 +8,17 @@ import { formatMoney } from '@/lib/format';
 import prisma from '@/lib/prisma';
 import { getPublicTripDetail } from '@/lib/trip-data';
 
+const FEATURED_DESTINATIONS = ['Mumbai', 'Goa', 'Udaipur', 'Paris', 'Tokyo', 'Cape Town'];
+
 export default async function Home() {
   const [session, indiaPreview, fallbackPreview, destinations] = await Promise.all([
     auth(),
     getPublicTripDetail('demo-western-india'),
     getPublicTripDetail('demo-europe-trip'),
-    prisma.city.findMany({ where: { country: 'India' }, orderBy: { popularity: 'desc' }, take: 3 }),
+    prisma.city.findMany({ where: { name: { in: FEATURED_DESTINATIONS } } }),
   ]);
   const preview = indiaPreview ?? fallbackPreview;
+  const orderedDestinations = FEATURED_DESTINATIONS.flatMap((name) => destinations.filter((city) => city.name === name));
 
   return (
     <div className="marketing-page">
@@ -43,9 +46,9 @@ export default async function Home() {
         </section>
         <section className="marquee" aria-label="Product principles"><div>ROUTE WITH INTENT <span>•</span> COSTS WITHOUT SURPRISES <span>•</span> SHARE WITHOUT SIGN-UP <span>•</span> ROUTE WITH INTENT <span>•</span> COSTS WITHOUT SURPRISES</div></section>
         <section className="page-width landing-section">
-          <div className="section-heading"><div className="eyebrow">DESTINATION BOARD</div><h2>Start somewhere worth remembering.</h2><p>Real destinations and activity estimates, queried from the GlobeTrotter database.</p></div>
+          <div className="section-heading"><div className="eyebrow">DESTINATION BOARD · INDIA TO THE WORLD</div><h2>One passport. A world of routes.</h2><p>Begin close to home or cross continents—every destination and estimate comes from the GlobeTrotter database.</p></div>
           <div className="destination-teaser-grid">
-            {destinations.map((city, index) => <article key={city.id} className="destination-teaser"><div className="destination-image"><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="(max-width: 760px) 100vw, 33vw" /></div><span className="teaser-index">0{index + 1}</span><div><h3>{city.name}</h3><p><MapPin size={13} /> {city.country}</p><small>{city.description}</small></div></article>)}
+            {orderedDestinations.map((city, index) => <article key={city.id} className="destination-teaser"><div className="destination-image"><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="(max-width: 760px) 100vw, 33vw" /></div><span className="teaser-index">0{index + 1}</span><div><h3>{city.name}</h3><p><MapPin size={13} /> {city.country}</p><small>{city.description}</small></div></article>)}
           </div>
         </section>
         <section className="landing-cta"><div className="page-width"><span className="ticket-code">NOW BOARDING · YOUR NEXT ROUTE</span><h2>Turn “we should go” into a day-by-day plan.</h2><Link className="button button-light" href={session ? '/trips/new' : '/signup'}>Open the planner <ArrowRight size={18} /></Link></div></section>

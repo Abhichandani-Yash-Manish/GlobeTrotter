@@ -1,0 +1,10 @@
+{
+  "name": "GlobeTrotter",
+  "short_name": "GlobeTrotter",
+  "description": "Plan multi-city routes, budgets, and shareable itineraries.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fbfc",
+  "theme_color": "#17324d",
+  "icons": [{ "src": "/globetrotter-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

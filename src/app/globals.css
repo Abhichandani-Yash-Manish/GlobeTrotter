@@ -44,11 +44,13 @@ img { object-fit: cover; }
 
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--navy); font: 800 1.35rem/1 var(--font-display); letter-spacing: -0.02em; }
 .brand > span:last-child span { color: var(--coral-ink); }
-.brand-mark { position: relative; display: grid; width: 31px; height: 31px; place-items: center; border: 2px solid var(--navy); border-radius: 50%; }
-.brand-mark span { position: absolute; display: block; background: var(--teal); }
-.brand-mark span:first-child { width: 2px; height: 25px; }
-.brand-mark span:nth-child(2) { width: 21px; height: 2px; }
-.brand-mark span:last-child { width: 17px; height: 17px; border: 2px solid var(--coral); border-radius: 50%; background: transparent; }
+.brand-mark { width: 34px; height: 34px; overflow: visible; flex: 0 0 auto; }
+.brand-globe { fill: white; stroke: currentColor; stroke-width: 2.3; }
+.brand-grid { fill: none; stroke: var(--teal); stroke-linecap: round; stroke-width: 1.35; opacity: .82; }
+.brand-route { fill: none; stroke: var(--coral-ink); stroke-linecap: round; stroke-width: 3; }
+.brand-origin { fill: var(--amber); stroke: currentColor; stroke-width: 1.3; }
+.brand-pin { fill: var(--coral); stroke: white; stroke-width: 1.4; }
+.brand-pin-core { fill: white; }
 
 .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 10px 17px; border: 1px solid transparent; border-radius: 7px; cursor: pointer; font-weight: 750; transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease; }
 .button:hover:not(:disabled) { transform: translateY(-2px); }
@@ -153,7 +155,7 @@ img { object-fit: cover; }
 .auth-page { display: grid; min-height: 100vh; grid-template-columns: .9fr 1.1fr; }
 .auth-visual { display: flex; min-height: 100vh; flex-direction: column; justify-content: space-between; padding: 45px clamp(35px, 7vw, 90px); color: white; background: var(--navy); }
 .auth-visual .brand { color: white; }
-.auth-visual .brand-mark { border-color: white; }
+.auth-visual .brand-globe { fill: var(--navy); stroke: white; }
 .auth-visual h2 { margin: 12px 0; font: 800 clamp(2.7rem, 5vw, 5.4rem)/.9 var(--font-display); text-transform: uppercase; }
 .auth-visual > a:last-child { color: #b8cad4; font-size: .85rem; }
 .auth-visual-coral { background: var(--teal-dark); }

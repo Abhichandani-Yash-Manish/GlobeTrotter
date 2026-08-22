@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { auth } from '@/lib/auth';
@@ -12,7 +12,15 @@ export const metadata: Metadata = {
   },
   description:
     "Build multi-city itineraries, keep the budget honest, and share a trip worth taking.",
+  icons: {
+    icon: [{ url: '/globetrotter-mark.svg', type: 'image/svg+xml' }],
+    shortcut: '/globetrotter-mark.svg',
+    apple: '/globetrotter-mark.svg',
+  },
+  manifest: '/manifest.webmanifest',
 };
+
+export const viewport: Viewport = { themeColor: '#17324D' };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const session = await auth();
