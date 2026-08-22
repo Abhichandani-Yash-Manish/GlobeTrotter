@@ -1,69 +1,54 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { ArrowRight, CalendarDays, Check, DollarSign, MapPin, Route } from 'lucide-react';
+import { MarketingHeader } from '@/components/marketing-header';
+import { ImageWithFallback } from '@/components/image-with-fallback';
+import { RouteRibbon } from '@/components/route-ribbon';
+import { auth } from '@/lib/auth';
+import { formatMoney } from '@/lib/format';
+import prisma from '@/lib/prisma';
+import { getPublicTripDetail } from '@/lib/trip-data';
 
-export default function Home() {
+export default async function Home() {
+  const [session, preview, destinations] = await Promise.all([
+    auth(),
+    getPublicTripDetail('demo-europe-trip'),
+    prisma.city.findMany({ orderBy: { popularity: 'desc' }, take: 3 }),
+  ]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="marketing-page">
+      <MarketingHeader />
+      <main>
+        <section className="hero page-width">
+          <div className="hero-copy">
+            <div className="eyebrow">ITINERARY CONTROL · WITHOUT THE SPREADSHEET</div>
+            <h1>Every great trip has a <em>route.</em></h1>
+            <p>Build a multi-city journey, make every day fit, and keep the budget honest—then hand someone a link they can actually use.</p>
+            <div className="hero-actions">
+              <Link className="button button-primary" href={session ? '/trips/new' : '/signup'}>Plan a trip <ArrowRight size={18} /></Link>
+              <Link className="button button-ghost" href="/share/demo-europe-trip">View a live itinerary</Link>
+            </div>
+            <div className="hero-proof"><span><Check size={15} /> persisted in SQLite</span><span><Check size={15} /> budget recalculates live</span><span><Check size={15} /> explainable trip checks</span></div>
+          </div>
+          {preview && (
+            <div className="hero-board">
+              <div className="board-topline"><span>GT 024</span><strong>EUROPE / EASTBOUND</strong><span>ON TIME</span></div>
+              <div className="board-trip"><div><small>TRIP</small><h2>{preview.trip.name}</h2></div><div><small>DATES</small><strong>{preview.trip.startDate.slice(5)} — {preview.trip.endDate.slice(5)}</strong></div></div>
+              <RouteRibbon stops={preview.stops} health={preview.health} compact />
+              <div className="board-metrics"><span><Route size={17} /><strong>{preview.stops.length}</strong><small>cities</small></span><span><CalendarDays size={17} /><strong>{preview.stops.reduce((total, stop) => total + stop.activities.length, 0)}</strong><small>activities</small></span><span><DollarSign size={17} /><strong>{formatMoney(preview.budget.spent)}</strong><small>planned</small></span></div>
+            </div>
+          )}
+        </section>
+        <section className="marquee" aria-label="Product principles"><div>ROUTE WITH INTENT <span>•</span> COSTS WITHOUT SURPRISES <span>•</span> SHARE WITHOUT SIGN-UP <span>•</span> ROUTE WITH INTENT <span>•</span> COSTS WITHOUT SURPRISES</div></section>
+        <section className="page-width landing-section">
+          <div className="section-heading"><div className="eyebrow">DESTINATION BOARD</div><h2>Start somewhere worth remembering.</h2><p>Real destinations and activity estimates, queried from the GlobeTrotter database.</p></div>
+          <div className="destination-teaser-grid">
+            {destinations.map((city, index) => <article key={city.id} className="destination-teaser"><div className="destination-image"><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="(max-width: 760px) 100vw, 33vw" /></div><span className="teaser-index">0{index + 1}</span><div><h3>{city.name}</h3><p><MapPin size={13} /> {city.country}</p><small>{city.description}</small></div></article>)}
+          </div>
+        </section>
+        <section className="landing-cta"><div className="page-width"><span className="ticket-code">NOW BOARDING · YOUR NEXT ROUTE</span><h2>Turn “we should go” into a day-by-day plan.</h2><Link className="button button-light" href={session ? '/trips/new' : '/signup'}>Open the planner <ArrowRight size={18} /></Link></div></section>
       </main>
+      <footer className="site-footer page-width"><span>GlobeTrotter · Odoo Hackathon 2026</span><span>USD estimates · locally persisted · built to explain</span></footer>
     </div>
   );
 }

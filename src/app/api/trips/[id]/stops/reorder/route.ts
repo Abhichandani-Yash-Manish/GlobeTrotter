@@ -1,50 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { apiData, apiError, parseRequest } from '@/lib/api';
+import { getOwnedTripDetail } from '@/lib/trip-data';
+import { validateExactReorder } from '@/lib/reorder';
+import { reorderSchema } from '@/lib/validation';
 
 export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  if (!session?.user?.id) return apiError('UNAUTHORIZED', 'Sign in to reorder stops.', 401);
   const { id } = await params;
-
-  const trip = await prisma.trip.findUnique({ where: { id } });
-  if (!trip || trip.userId !== session.user.id) {
-    return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
-  }
-
-  const { orderedIds } = await req.json();
-
-  if (!Array.isArray(orderedIds)) {
-    return NextResponse.json({ error: 'orderedIds must be an array' }, { status: 400 });
-  }
-
-  // Update all stop orders in a transaction
-  await prisma.$transaction(
-    orderedIds.map((stopId: string, index: number) =>
-      prisma.tripStop.update({
-        where: { id: stopId },
-        data: { order: index },
-      })
-    )
-  );
-
-  const stops = await prisma.tripStop.findMany({
-    where: { tripId: id },
-    include: {
-      city: true,
-      activities: {
-        include: { activity: true },
-        orderBy: { order: 'asc' },
-      },
-    },
-    orderBy: { order: 'asc' },
+  const parsed = await parseRequest(request, reorderSchema);
+  if (parsed.response) return parsed.response;
+  const trip = await prisma.trip.findFirst({
+    where: { id, userId: session.user.id },
+    select: { stops: { select: { id: true } } },
   });
+  if (!trip) return apiError('NOT_FOUND', 'Trip not found.', 404);
+  const reorderError = validateExactReorder(parsed.data.orderedIds, trip.stops.map((stop) => stop.id));
+  if (reorderError) return apiError('INVALID_REORDER', reorderError, 400);
 
-  return NextResponse.json(stops);
+  await prisma.$transaction(
+    parsed.data.orderedIds.map((stopId, order) =>
+      prisma.tripStop.update({ where: { id: stopId }, data: { order } }),
+    ),
+  );
+  return apiData(await getOwnedTripDetail(session.user.id, id));
 }

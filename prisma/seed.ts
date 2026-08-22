@@ -1,9 +1,12 @@
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import type { City } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
-import * as bcryptModule from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
-const bcrypt = bcryptModule as any;
-
-const prisma = new PrismaClient();
+const adapter = new PrismaBetterSqlite3({
+  url: process.env.DATABASE_URL ?? 'file:./prisma/dev.db',
+});
+const prisma = new PrismaClient({ adapter });
 
 const cities = [
   { name: 'Paris', country: 'France', region: 'Europe', costIndex: 4.2, popularity: 4.9, description: 'The City of Light, known for the Eiffel Tower, Louvre Museum, and world-class cuisine.', latitude: 48.8566, longitude: 2.3522, imageUrl: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600' },
@@ -140,7 +143,7 @@ const activitiesByCity: CityActivities = {
 };
 
 // Generate generic activities for cities without specific activities
-function generateActivities(cityName: string, category: string = 'Sightseeing') {
+function generateActivities(cityName: string) {
   const genericActivities = [
     { name: `${cityName} City Walking Tour`, description: `Guided walking tour through the highlights of ${cityName}.`, category: 'Sightseeing', cost: 20, duration: 2.5, imageUrl: '' },
     { name: `${cityName} Food Tour`, description: `Taste the best local cuisine and street food in ${cityName}.`, category: 'Food & Drink', cost: 35, duration: 2.5, imageUrl: '' },
@@ -177,7 +180,7 @@ async function main() {
     },
   });
 
-  const adminUser = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'admin@globetrotter.com',
       passwordHash: adminPasswordHash,
@@ -190,7 +193,7 @@ async function main() {
   console.log('✅ Created demo users');
 
   // Create cities
-  const createdCities: Record<string, any> = {};
+  const createdCities: Record<string, City> = {};
   for (const city of cities) {
     const created = await prisma.city.create({ data: city });
     createdCities[city.name] = created;
@@ -220,7 +223,7 @@ async function main() {
 
   const sampleTrip = await prisma.trip.create({
     data: {
-      name: 'European Adventure 2025',
+      name: `European Adventure ${tripStart.getFullYear()}`,
       description: 'A two-week journey through the most beautiful cities in Europe — from the romance of Paris to the history of Rome.',
       startDate: tripStart,
       endDate: tripEnd,
@@ -327,7 +330,7 @@ async function main() {
   // Add expenses to sample trip
   const expenseCategories = [
     { category: 'Transport', amount: 450, description: 'Flights and trains', date: tripStart },
-    { category: 'Accommodation', amount: 1200, description: 'Hotels for 14 nights', date: tripStart },
+    { category: 'Stay', amount: 1200, description: 'Hotels for 14 nights', date: tripStart },
     { category: 'Meals', amount: 600, description: 'Estimated meal budget', date: tripStart },
   ];
 

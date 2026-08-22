@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -60,6 +59,7 @@ model TripStop {
 
   @@index([tripId])
   @@index([cityId])
+  @@index([tripId, startDate, endDate])
 }
 
 model City {
@@ -78,6 +78,7 @@ model City {
   activities        Activity[]
   savedDestinations SavedDestination[]
 
+  @@unique([name, country])
   @@index([name])
   @@index([country])
   @@index([region])
@@ -117,6 +118,7 @@ model TripActivity {
 
   @@index([tripStopId])
   @@index([activityId])
+  @@index([tripStopId, date])
 }
 
 model Expense {
@@ -133,6 +135,7 @@ model Expense {
 
   @@index([tripId])
   @@index([category])
+  @@index([tripId, date])
 }
 
 model SavedDestination {
