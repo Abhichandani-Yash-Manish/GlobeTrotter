@@ -7,6 +7,7 @@ import {
   type TripDto,
   type TripHealthIssue,
 } from '@/types/domain';
+import { formatMoney } from '@/lib/format';
 
 const DAY_MS = 86_400_000;
 
@@ -249,7 +250,7 @@ export function calculateTripHealth(
       id: 'over-budget',
       severity: 'error',
       title: 'Budget exceeded',
-      message: `Planned spending is $${Math.abs(budget.remaining).toFixed(0)} over the trip budget.`,
+      message: `Planned spending is ${formatMoney(Math.abs(budget.remaining))} over the trip budget.`,
     });
   } else if (budget.overBudgetDays.length > 0) {
     issues.push({

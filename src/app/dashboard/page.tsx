@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AlertTriangle, ArrowRight, CalendarDays, Compass, MapPin, Plus, Share2, WalletCards } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
+import { CurrencyPocket } from '@/components/currency-pocket';
 import { ImageWithFallback } from '@/components/image-with-fallback';
 import { dateKey } from '@/lib/domain';
 import { formatMoney } from '@/lib/format';
@@ -19,11 +20,13 @@ export default async function DashboardPage() {
       orderBy: { updatedAt: 'desc' },
       take: 8,
     }),
-    prisma.city.findMany({ orderBy: [{ popularity: 'desc' }, { costIndex: 'asc' }], take: 4 }),
+    prisma.city.findMany({ where: { country: 'India' }, orderBy: [{ popularity: 'desc' }, { costIndex: 'asc' }], take: 4 }),
     prisma.savedDestination.findMany({ where: { userId: user.id }, include: { city: true }, orderBy: { createdAt: 'desc' }, take: 4 }),
   ]);
   const chronologicalTrips = [...trips].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
-  const nextTrip = chronologicalTrips.find((trip) => trip.endDate >= new Date()) ?? chronologicalTrips[0];
+  const nextTrip = (user.email === 'demo@globetrotter.com' ? trips.find((trip) => trip.publicId === 'demo-western-india') : undefined)
+    ?? chronologicalTrips.find((trip) => trip.endDate >= new Date())
+    ?? chronologicalTrips[0];
   const plannedSpend = nextTrip
     ? nextTrip.expenses.reduce((total, expense) => total + expense.amount, 0) + nextTrip.stops.flatMap((stop) => stop.activities).reduce((total, item) => total + (item.cost ?? item.activity.cost), 0)
     : 0;
@@ -42,6 +45,7 @@ export default async function DashboardPage() {
           <article><MapPin /><div><strong>{trips.reduce((total, trip) => total + trip.stops.length, 0)}</strong><span>destination stops</span></div></article>
           <article><WalletCards /><div><strong>{formatMoney(plannedSpend)}</strong><span>next route planned</span></div></article>
         </section>
+        <CurrencyPocket />
         {nextTrip ? (
           <section className="next-trip-feature">
             <div className="next-trip-image"><ImageWithFallback src={nextTrip.coverImage} alt={nextTrip.name} sizes="(max-width: 900px) 100vw, 45vw" priority /></div>

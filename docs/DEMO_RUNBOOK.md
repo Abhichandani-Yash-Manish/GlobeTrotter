@@ -18,7 +18,7 @@ Open `http://localhost:3000`. Use `demo@globetrotter.com` / `password123`.
 
 **0:00–0:25 — The promise**
 
-Open the landing page: “GlobeTrotter turns a multi-city idea into a dated, budget-aware route that a crew can plan and another traveler can reuse.” Open the Western India public itinerary to establish the editorial atlas, persistent data, photography, map, and sharing before signing in.
+Open the landing page: “GlobeTrotter turns a multi-city idea into a dated, budget-aware route that a crew can plan and another traveler can reuse.” The landing board now opens on the Western India public itinerary, with Indian recommendations and INR planning estimates visible before sign-in.
 
 **0:25–1:20 — Discover and plan**
 
@@ -26,7 +26,7 @@ Use demo sign-in. Open Explore, search Ahmedabad, and open its destination dossi
 
 **1:20–2:00 — Calendar, map, budget, health**
 
-Switch between Plan, Map, and Budget. Add or edit one cost and show the donut, daily bars, category totals, remaining amount, and Trip Health update from the same persisted data. Open review and switch List → Calendar → Map.
+Switch between Plan, Map, and Budget. Add or edit one rupee cost and show the donut, daily bars, category totals, remaining amount, and Trip Health update from the same persisted data. Briefly use the dated FX pocket guide, then open review and switch List → Calendar → Map.
 
 **2:00–2:35 — Controlled collaboration**
 

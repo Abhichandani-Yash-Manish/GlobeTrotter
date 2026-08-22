@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react';
 import { ImageWithFallback } from '@/components/image-with-fallback';
 import { StatusMessage } from '@/components/status-message';
 import { requestJson } from '@/lib/client-api';
+import { baseToDisplayAmount, displayToBaseAmount } from '@/lib/format';
 import type { CityDto, TripDetail } from '@/types/domain';
 
 export function TripMetadataEditor({ detail, covers, onUpdated, onClose }: { detail: TripDetail; covers: CityDto[]; onUpdated: (detail: TripDetail) => void; onClose: () => void }) {
@@ -36,7 +37,7 @@ export function TripMetadataEditor({ detail, covers, onUpdated, onClose }: { det
         method: 'PUT',
         body: JSON.stringify({
           name: form.get('name'), description: form.get('description'), startDate: form.get('startDate'), endDate: form.get('endDate'),
-          budget: form.get('budget') ? Number(form.get('budget')) : null, coverImage: coverImage || null,
+          budget: form.get('budget') ? displayToBaseAmount(Number(form.get('budget'))) : null, coverImage: coverImage || null,
         }),
       });
       onUpdated(updated);
@@ -49,7 +50,7 @@ export function TripMetadataEditor({ detail, covers, onUpdated, onClose }: { det
     <section className="metadata-editor">
       <header><div><span>TRIP PROFILE</span><h2>Shape the journey.</h2></div><button className="icon-button" type="button" onClick={onClose} aria-label="Close trip editor"><X size={17} /></button></header>
       <div className="metadata-form">
-        <form className="metadata-fields" onSubmit={save}><label>Trip name<input name="name" defaultValue={detail.trip.name} maxLength={80} required /></label><div className="two-columns"><label>Start<input name="startDate" type="date" defaultValue={detail.trip.startDate} required /></label><label>End<input name="endDate" type="date" defaultValue={detail.trip.endDate} required /></label></div><label>Budget in USD<input name="budget" type="number" min="1" step="0.01" defaultValue={detail.trip.budget ?? ''} /></label><label>Field note<textarea name="description" maxLength={600} defaultValue={detail.trip.description ?? ''} /></label><button className="button button-dark" type="submit" disabled={busy}>{busy ? <LoaderCircle className="spin" size={17} /> : <Save size={17} />} Save details</button></form>
+        <form className="metadata-fields" onSubmit={save}><label>Trip name<input name="name" defaultValue={detail.trip.name} maxLength={80} required /></label><div className="two-columns"><label>Start<input name="startDate" type="date" defaultValue={detail.trip.startDate} required /></label><label>End<input name="endDate" type="date" defaultValue={detail.trip.endDate} required /></label></div><label>Budget in rupees<input name="budget" type="number" min="100" step="100" defaultValue={detail.trip.budget === null ? '' : Math.round(baseToDisplayAmount(detail.trip.budget))} /></label><label>Field note<textarea name="description" maxLength={600} defaultValue={detail.trip.description ?? ''} /></label><button className="button button-dark" type="submit" disabled={busy}>{busy ? <LoaderCircle className="spin" size={17} /> : <Save size={17} />} Save details</button></form>
         <div className="cover-editor"><div className="cover-preview"><ImageWithFallback src={coverImage} alt={`${detail.trip.name} cover`} sizes="400px" /></div><div><span className="section-kicker">SEEDED COVER GALLERY</span><div className="cover-gallery">{covers.slice(0, 8).map((city) => <button type="button" className={coverImage === city.imageUrl ? 'selected' : ''} key={city.id} onClick={() => setCoverImage(city.imageUrl ?? '')} aria-label={`Use ${city.name} cover`}><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="90px" /></button>)}</div></div><form className="upload-row" onSubmit={upload}><label><ImagePlus size={16} /> Upload JPEG, PNG, or WebP<input name="file" type="file" accept="image/jpeg,image/png,image/webp" required /></label><button className="button button-ghost button-small" type="submit" disabled={busy}><Upload size={15} /> Process</button></form><small>Uploads are decoded, resized, stripped of metadata, and stored as WebP up to 2 MB.</small></div>
       </div>
       <StatusMessage message={message} tone={message?.startsWith('Could') ? 'error' : 'success'} />

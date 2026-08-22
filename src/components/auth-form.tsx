@@ -75,13 +75,13 @@ export function AuthForm({
       <p className="auth-intro">
         {mode === 'login'
           ? 'Your saved routes, costs, and shared itineraries are waiting.'
-          : 'One account keeps every stop, activity, and dollar in the same itinerary.'}
+          : 'One account keeps every stop, activity, and rupee in the same itinerary.'}
       </p>
 
       <button className="demo-ticket" type="button" onClick={useDemo} disabled={busy}>
         <span>
           <small>DEMO BOARDING PASS</small>
-          <strong>Alex Traveler</strong>
+          <strong>Aarav Patel · India demo</strong>
           <em>demo@globetrotter.com · password123</em>
         </span>
         <ArrowRight size={20} />

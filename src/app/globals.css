@@ -115,7 +115,9 @@ img { object-fit: cover; }
 .route-ribbon-compact { display: flex; gap: 0; overflow-x: auto; padding-bottom: 8px; }
 .route-ribbon-compact li { min-width: 148px; min-height: 50px; grid-template-columns: 25px 1fr; }
 .route-ribbon-compact li:not(:last-child)::before { top: 11px; right: -1px; bottom: auto; left: 20px; width: auto; height: 0; border-top: 3px dashed var(--teal); background: none; transform: scaleX(0); transform-origin: left; animation-name: route-draw-x; }
+.route-ribbon-compact .route-copy strong { position: relative; z-index: 1; width: max-content; max-width: 100%; padding-right: 6px; background: white; }
 .route-ribbon-compact .route-copy small { position: relative; z-index: 1; width: max-content; background: white; }
+.hero-board .route-ribbon-compact .route-copy strong { background: var(--navy); }
 .route-empty { padding: 22px; border: 1px dashed var(--line); color: var(--muted); font-size: .84rem; text-align: center; }
 
 .marquee { overflow: hidden; padding: 12px 0; color: var(--navy); background: var(--amber); font: 800 .75rem var(--font-mono); letter-spacing: .08em; white-space: nowrap; }
@@ -215,6 +217,19 @@ input:hover, select:hover, textarea:hover { border-color: #91aab5; }
 .dashboard-metrics svg { color: var(--teal); }
 .dashboard-metrics strong { display: block; font: 800 1.65rem var(--font-display); }
 .dashboard-metrics span { color: var(--muted); font-size: .75rem; }
+.currency-pocket { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 18px; align-items: center; margin: -10px 0 26px; padding: 15px 18px; border: 1px solid #b7cbd1; border-left: 6px solid var(--amber); border-radius: 6px; background: linear-gradient(100deg, #f4fafb 0%, white 58%); }
+.currency-pocket-heading { display: grid; gap: 4px; color: var(--navy); }
+.currency-pocket-heading > span { display: flex; align-items: center; gap: 7px; font: 800 .68rem var(--font-mono); letter-spacing: .08em; }
+.currency-pocket-heading small { color: var(--muted); font: .56rem var(--font-mono); }
+.currency-pocket-controls { display: grid; min-width: 0; grid-template-columns: minmax(130px, .8fr) 20px minmax(170px, 1fr) minmax(105px, .6fr); gap: 10px; align-items: end; }
+.currency-pocket-controls > svg { align-self: center; margin-top: 16px; color: var(--teal); }
+.currency-pocket-controls label { min-width: 0; color: var(--muted); font-size: .58rem; }
+.currency-pocket-controls input, .currency-pocket-controls select { min-width: 0; min-height: 38px; padding: 7px 9px; font-size: .72rem; }
+.currency-input { display: grid; grid-template-columns: 26px 1fr; align-items: center; border: 1px solid var(--line); border-radius: 4px; background: white; }
+.currency-input strong { text-align: center; color: var(--teal); font: 800 .9rem var(--font-display); }
+.currency-input input { border: 0; border-left: 1px solid var(--line); border-radius: 0; }
+.currency-pocket output { display: grid; min-height: 38px; place-items: center; padding: 7px 10px; border-radius: 4px; color: white; background: var(--navy); font: 800 1rem var(--font-mono); white-space: nowrap; }
+.currency-pocket > p { grid-column: 2; margin: -8px 0 0; color: var(--muted); font-size: .58rem; }
 .next-trip-feature { display: grid; min-height: 410px; grid-template-columns: .92fr 1.08fr; overflow: hidden; border-radius: 8px; color: white; background: var(--navy); box-shadow: var(--shadow); }
 .next-trip-copy { align-self: center; padding: clamp(27px, 5vw, 65px); }
 .next-trip-copy .ticket-code { color: var(--amber); }
@@ -292,6 +307,7 @@ summary::-webkit-details-marker { display: none; }
 .route-code { display: grid; width: 28px; height: 28px; place-items: center; color: white; background: var(--navy); font-size: .64rem; }
 .stop-notes { margin: 12px 0 6px 64px; color: var(--muted); font-size: .78rem; }
 .scheduled-list { display: grid; gap: 1px; margin: 13px 0 13px 64px; background: var(--line); }
+.scheduled-list > .muted-copy { margin: 0; padding: 12px; background: white; }
 .scheduled-row { display: grid; grid-template-columns: 62px 1fr auto; gap: 10px; align-items: center; padding: 10px; background: white; font-size: .76rem; }
 .scheduled-row > span:nth-child(2) { display: grid; min-width: 0; }
 .scheduled-row > span:nth-child(2) strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -645,6 +661,8 @@ summary::-webkit-details-marker { display: none; }
   .app-nav a { min-height: 43px; flex: 1; justify-content: center; }
   .account-name { display: none; }
   .next-trip-feature { grid-template-columns: 1fr; }
+  .currency-pocket { grid-template-columns: 1fr; }
+  .currency-pocket > p { grid-column: 1; }
   .next-trip-image { min-height: 280px; }
   .recommendation-strip { grid-template-columns: repeat(2, 1fr); }
   .planner-route-panel { display: none; }
@@ -711,6 +729,9 @@ summary::-webkit-details-marker { display: none; }
   .page-heading h1, .dashboard-heading h1 { font-size: 2.9rem; }
   .page-heading-row, .dashboard-heading, .section-title-row, .planner-titlebar, .trip-detail-overlay { align-items: start; flex-direction: column; }
   .dashboard-metrics { grid-template-columns: 1fr; }
+  .currency-pocket-controls { grid-template-columns: 1fr 20px 1fr; }
+  .currency-pocket-controls > svg { margin: 0; transform: rotate(90deg); }
+  .currency-pocket output { grid-column: 1 / -1; }
   .next-trip-copy dl { grid-template-columns: 1fr; }
   .next-trip-copy .hero-actions .button { width: 100%; }
   .trip-list-toolbar { align-items: stretch; flex-direction: column; }

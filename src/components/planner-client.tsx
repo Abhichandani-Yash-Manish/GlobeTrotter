@@ -21,7 +21,7 @@ import {
   Check,
   CircleAlert,
   Copy,
-  DollarSign,
+  IndianRupee,
   ArrowDown,
   ArrowUp,
   GripVertical,
@@ -50,7 +50,7 @@ import { TripCollaboration } from '@/components/trip-collaboration';
 import { TripMetadataEditor } from '@/components/trip-metadata-editor';
 import { ImageWithFallback } from '@/components/image-with-fallback';
 import { requestJson } from '@/lib/client-api';
-import { formatMoney } from '@/lib/format';
+import { baseToDisplayAmount, displayToBaseAmount, formatMoney } from '@/lib/format';
 import type { ActivityDto, CityDto, PlannerStop, RouteMapData, TripDetail } from '@/types/domain';
 
 type ActivityFilters = { q: string; category: string; maxCost: string; maxDuration: string };
@@ -61,7 +61,7 @@ function activityQuery(filters: ActivityFilters) {
   const params = new URLSearchParams();
   if (filters.q.trim()) params.set('q', filters.q.trim());
   if (filters.category !== 'All') params.set('category', filters.category);
-  if (filters.maxCost) params.set('maxCost', filters.maxCost);
+  if (filters.maxCost) params.set('maxCost', String(displayToBaseAmount(Number(filters.maxCost))));
   if (filters.maxDuration) params.set('maxDuration', filters.maxDuration);
   return params;
 }
@@ -141,7 +141,7 @@ function SortableStop({
                   <Trash2 size={14} />
                 </button>
               </span>
-              {canEdit && <details className="quick-edit"><summary><Pencil size={13} /> Edit</summary><form className="quick-edit-form" onSubmit={(event) => onUpdateActivity(scheduled.id, event)}><label>Date<input name="date" type="date" min={stop.startDate} max={stop.endDate} defaultValue={scheduled.date} required /></label><label>Time<input name="startTime" type="time" defaultValue={scheduled.startTime ?? ''} /></label><label>Hours<input name="duration" type="number" min="0.25" max="24" step="0.25" defaultValue={scheduled.duration} required /></label><label>Cost<input name="cost" type="number" min="0" step="0.01" defaultValue={scheduled.cost} required /></label><label className="full-field">Notes<input name="notes" maxLength={500} defaultValue={scheduled.notes ?? ''} /></label><button className="button button-dark button-small" type="submit" disabled={busy}>Save activity</button></form></details>}
+              {canEdit && <details className="quick-edit"><summary><Pencil size={13} /> Edit</summary><form className="quick-edit-form" onSubmit={(event) => onUpdateActivity(scheduled.id, event)}><label>Date<input name="date" type="date" min={stop.startDate} max={stop.endDate} defaultValue={scheduled.date} required /></label><label>Time<input name="startTime" type="time" defaultValue={scheduled.startTime ?? ''} /></label><label>Hours<input name="duration" type="number" min="0.25" max="24" step="0.25" defaultValue={scheduled.duration} required /></label><label>Cost (₹)<input name="cost" type="number" min="0" step="1" defaultValue={Math.round(baseToDisplayAmount(scheduled.cost))} required /></label><label className="full-field">Notes<input name="notes" maxLength={500} defaultValue={scheduled.notes ?? ''} /></label><button className="button button-dark button-small" type="submit" disabled={busy}>Save activity</button></form></details>}
             </div>
           ))
         )}
@@ -358,7 +358,7 @@ export function PlannerClient({
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     await updateDetail(() => requestJson<TripDetail>(`/api/trips/${detail.trip.id}/stops/${stop.id}/activities/${scheduledId}`, {
-      method: 'PUT', body: JSON.stringify({ date: form.get('date'), startTime: form.get('startTime') || null, duration: Number(form.get('duration')), cost: Number(form.get('cost')), notes: form.get('notes') }),
+      method: 'PUT', body: JSON.stringify({ date: form.get('date'), startTime: form.get('startTime') || null, duration: Number(form.get('duration')), cost: displayToBaseAmount(Number(form.get('cost'))), notes: form.get('notes') }),
     }), 'Activity details saved.');
   }
 
@@ -412,7 +412,7 @@ export function PlannerClient({
         body: JSON.stringify({
           tripStopId: form.get('tripStopId') || null,
           category: form.get('category'),
-          amount: Number(form.get('amount')),
+          amount: displayToBaseAmount(Number(form.get('amount'))),
           description: form.get('description'),
           date: form.get('date'),
         }),
@@ -436,7 +436,7 @@ export function PlannerClient({
     const form = new FormData(event.currentTarget);
     await updateDetail(() => requestJson<TripDetail>(`/api/trips/${detail.trip.id}/expenses/${expenseId}`, {
       method: 'PUT',
-      body: JSON.stringify({ tripStopId: form.get('tripStopId') || null, category: form.get('category'), amount: Number(form.get('amount')), description: form.get('description'), date: form.get('date') }),
+      body: JSON.stringify({ tripStopId: form.get('tripStopId') || null, category: form.get('category'), amount: displayToBaseAmount(Number(form.get('amount'))), description: form.get('description'), date: form.get('date') }),
     }), 'Cost details saved.');
   }
 
@@ -562,7 +562,7 @@ export function PlannerClient({
               <form className="activity-filters" onSubmit={filterActivities} aria-label={`Filter ${selectedStop.city.name} activities`} aria-busy={busy}>
                 <label className="search-field"><Search size={15} /><input name="q" placeholder="Name, place, or idea" aria-label="Search activities" value={activityFilters.q} onChange={(event) => setActivityFilters((current) => ({ ...current, q: event.target.value }))} /></label>
                 <select name="category" value={activityFilters.category} onChange={(event) => setActivityFilters((current) => ({ ...current, category: event.target.value }))} aria-label="Activity category"><option>All</option>{activityCategories.map((category) => <option key={category}>{category}</option>)}</select>
-                <input name="maxCost" type="number" min="0" placeholder="Max $" aria-label="Maximum activity cost" value={activityFilters.maxCost} onChange={(event) => setActivityFilters((current) => ({ ...current, maxCost: event.target.value }))} />
+                <input name="maxCost" type="number" min="0" step="100" placeholder="Max ₹" aria-label="Maximum activity cost in rupees" value={activityFilters.maxCost} onChange={(event) => setActivityFilters((current) => ({ ...current, maxCost: event.target.value }))} />
                 <input name="maxDuration" type="number" min="0.5" step="0.5" placeholder="Max hours" aria-label="Maximum activity duration" value={activityFilters.maxDuration} onChange={(event) => setActivityFilters((current) => ({ ...current, maxDuration: event.target.value }))} />
                 <button className="button button-dark button-small" type="submit" disabled={busy}><SlidersHorizontal size={14} /> Apply</button>
                 <button className="filter-reset filter-reset-small" type="button" onClick={resetActivityFilters} disabled={busy || ![activityFilters.q.trim(), activityFilters.category !== 'All', activityFilters.maxCost, activityFilters.maxDuration].some(Boolean)}><RotateCcw size={13} /> Reset</button>
@@ -588,7 +588,7 @@ export function PlannerClient({
 
         <aside className="planner-inspector planner-budget-region">
           <section className="inspector-card budget-card">
-            <div className="panel-heading"><span>LIVE BUDGET</span><DollarSign size={16} /></div>
+            <div className="panel-heading"><span>LIVE BUDGET · INR</span><IndianRupee size={16} /></div>
             <strong className="budget-total">{formatMoney(detail.budget.spent)}</strong>
             <p>of {detail.budget.budget === null ? 'no limit set' : formatMoney(detail.budget.budget)}</p>
             {detail.budget.budget !== null && <div className="budget-track"><span style={{ width: `${budgetPercent}%` }} /></div>}
@@ -619,7 +619,7 @@ export function PlannerClient({
                         <Trash2 size={13} />
                       </button>}
                     </span>
-                    {canEdit && <details className="quick-edit expense-quick-edit"><summary><Pencil size={12} /> Edit cost</summary><form className="quick-edit-form" onSubmit={(event) => updateExpense(expense.id, event)}><label>Category<select name="category" defaultValue={expense.category}><option>Transport</option><option>Stay</option><option>Meals</option><option>Miscellaneous</option></select></label><label>Amount<input name="amount" type="number" min="0.01" step="0.01" defaultValue={expense.amount} required /></label><label>Date<input name="date" type="date" min={detail.trip.startDate} max={detail.trip.endDate} defaultValue={expense.date} required /></label><label>Stop<select name="tripStopId" defaultValue={expense.tripStopId ?? ''}><option value="">Whole trip</option>{detail.stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.city.name}</option>)}</select></label><label className="full-field">Label<input name="description" maxLength={180} defaultValue={expense.description ?? ''} /></label><button className="button button-dark button-small" type="submit" disabled={busy}>Save cost</button></form></details>}
+                    {canEdit && <details className="quick-edit expense-quick-edit"><summary><Pencil size={12} /> Edit cost</summary><form className="quick-edit-form" onSubmit={(event) => updateExpense(expense.id, event)}><label>Category<select name="category" defaultValue={expense.category}><option>Transport</option><option>Stay</option><option>Meals</option><option>Miscellaneous</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" step="1" defaultValue={Math.round(baseToDisplayAmount(expense.amount))} required /></label><label>Date<input name="date" type="date" min={detail.trip.startDate} max={detail.trip.endDate} defaultValue={expense.date} required /></label><label>Stop<select name="tripStopId" defaultValue={expense.tripStopId ?? ''}><option value="">Whole trip</option>{detail.stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.city.name}</option>)}</select></label><label className="full-field">Label<input name="description" maxLength={180} defaultValue={expense.description ?? ''} /></label><button className="button button-dark button-small" type="submit" disabled={busy}>Save cost</button></form></details>}
                   </div>
                 ))}
               </div>
@@ -628,7 +628,7 @@ export function PlannerClient({
               <summary><Plus size={15} /> Add cost</summary>
               <form className="stack-form compact-form" onSubmit={addExpense}>
                 <label>Category<select name="category" defaultValue="Transport"><option>Transport</option><option>Stay</option><option>Meals</option><option>Miscellaneous</option></select></label>
-                <label>Amount<input name="amount" type="number" min="0.01" step="0.01" required /></label>
+                <label>Amount (₹)<input name="amount" type="number" min="1" step="1" placeholder="2500" required /></label>
                 <label>Date<input name="date" type="date" min={detail.trip.startDate} max={detail.trip.endDate} required /></label>
                 <label>Attach to<select name="tripStopId" defaultValue=""><option value="">Whole trip</option>{detail.stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.city.name}</option>)}</select></label>
                 <label>Label<input name="description" maxLength={180} placeholder="Night train" /></label>

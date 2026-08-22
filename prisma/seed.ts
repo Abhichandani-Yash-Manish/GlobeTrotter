@@ -268,7 +268,7 @@ async function main() {
     data: {
       email: 'demo@globetrotter.com',
       passwordHash: demoPasswordHash,
-      name: 'Alex Traveler',
+      name: 'Aarav Patel',
       role: 'USER',
       avatar: null,
     },
@@ -278,7 +278,7 @@ async function main() {
     data: {
       email: 'admin@globetrotter.com',
       passwordHash: adminPasswordHash,
-      name: 'Admin',
+      name: 'Meera Shah',
       role: 'ADMIN',
       avatar: null,
     },
@@ -451,14 +451,14 @@ async function main() {
 
   await prisma.trip.create({
     data: {
-      name: 'Southeast Asia Explorer',
-      description: 'Temples, street food, and tropical beaches across Thailand and Bali.',
+      name: 'Konkan & Rajasthan Sketchbook',
+      description: 'Palace craft, coastal food, old-city walks, and rail journeys across western India.',
       startDate: asiaStart,
       endDate: asiaEnd,
       budget: 2500,
       isPublic: false,
       userId: demoUser.id,
-      coverImage: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800',
+      coverImage: createdCities.Goa.imageUrl,
     },
   });
 
@@ -514,9 +514,9 @@ async function main() {
   // Save some destinations for demo user
   await prisma.savedDestination.createMany({
     data: [
-      { userId: demoUser.id, cityId: createdCities['Kyoto'].id },
-      { userId: demoUser.id, cityId: createdCities['Santorini'].id },
-      { userId: demoUser.id, cityId: createdCities['Maldives'].id },
+      { userId: demoUser.id, cityId: createdCities.Goa.id },
+      { userId: demoUser.id, cityId: createdCities.Jaipur.id },
+      { userId: demoUser.id, cityId: createdCities.Vadodara.id },
     ],
   });
 
