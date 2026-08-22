@@ -16,7 +16,8 @@
     "db:seed": "prisma db seed",
     "db:reset": "npm run db:prepare && prisma migrate reset --force",
     "reset-demo": "npm run db:reset",
-    "check": "npm run db:generate && npm run lint && npm run test && npm run build",
+    "verify:demo": "node scripts/verify-demo.mjs",
+    "check": "npm run db:generate && npm run lint && npm run test && npm run build && npm run verify:demo",
     "postinstall": "prisma generate"
   },
   "engines": {

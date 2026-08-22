@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { apiData, apiError, parseRequest } from '@/lib/api';
-import { hashToken } from '@/lib/tokens';
+import { hashToken, isOpaqueTokenActive } from '@/lib/tokens';
 import { resetPasswordSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const token = await prisma.passwordResetToken.findUnique({
     where: { tokenHash: hashToken(parsed.data.token) },
   });
-  if (!token || token.usedAt || token.expiresAt <= new Date()) {
+  if (!token || !isOpaqueTokenActive(token)) {
     return apiError('INVALID_TOKEN', 'This recovery link is invalid or has expired.', 400);
   }
 
@@ -23,4 +23,3 @@ export async function POST(request: Request) {
 
   return apiData({ message: 'Password updated. You can sign in now.' });
 }
-

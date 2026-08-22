@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { apiData, apiError } from '@/lib/api';
-import { hashToken } from '@/lib/tokens';
+import { hashToken, isOpaqueTokenActive } from '@/lib/tokens';
 
 type RouteContext = { params: Promise<{ token: string }> };
 
@@ -13,7 +13,7 @@ export async function POST(_request: Request, { params }: RouteContext) {
     where: { tokenHash: hashToken(token) },
     include: { trip: { select: { id: true, name: true, userId: true } } },
   });
-  if (!invite || invite.revokedAt || invite.acceptedAt || invite.expiresAt <= new Date()) {
+  if (!invite || !isOpaqueTokenActive({ expiresAt: invite.expiresAt, usedAt: invite.acceptedAt, revokedAt: invite.revokedAt })) {
     return apiError('INVALID_INVITE', 'This invite is invalid, expired, or has already been used.', 400);
   }
   if (invite.trip.userId === session.user.id) {
@@ -30,4 +30,3 @@ export async function POST(_request: Request, { params }: RouteContext) {
   ]);
   return apiData({ tripId: invite.trip.id, tripName: invite.trip.name, access: invite.role });
 }
-
