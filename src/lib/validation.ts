@@ -2,7 +2,11 @@ import { z } from 'zod';
 import { ARRIVAL_MODES, EXPENSE_CATEGORIES } from '@/types/domain';
 
 const trimmed = z.string().trim();
-const emailInput = trimmed.toLowerCase().pipe(z.email('Enter a valid email address.'));
+const strictEmailRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
+const emailInput = trimmed
+  .toLowerCase()
+  .pipe(z.email('Enter a valid email address.'))
+  .refine((value) => strictEmailRegex.test(value) && !value.includes('..'), 'Enter a valid email address.');
 const dateInput = trimmed
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a date in YYYY-MM-DD format.')
   .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)), 'Enter a valid date.');

@@ -107,13 +107,13 @@ img { object-fit: cover; }
 .route-node { display: grid; z-index: 2; width: 27px; height: 27px; place-items: center; border: 3px solid var(--paper); border-radius: 50%; color: white; background: var(--teal); box-shadow: 0 0 0 1px var(--teal); animation: route-node-in .42s var(--route-delay) var(--route-ease) both; }
 .node-warning { color: var(--navy); background: var(--amber); box-shadow: 0 0 0 1px var(--amber); }
 .node-error { background: var(--coral); box-shadow: 0 0 0 1px var(--coral); }
-.route-copy { display: grid; padding-bottom: 18px; }
-.route-copy strong { font: 800 1.13rem var(--font-display); text-transform: uppercase; }
+.route-copy { display: grid; padding-bottom: 18px; min-width: 0; }
+.route-copy strong { font: 800 1.13rem var(--font-display); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .route-copy small { color: var(--muted); font: .7rem var(--font-mono); }
 .hero-board .route-ribbon-compact .route-copy small { color: #dce8ed; background: var(--navy); }
 .hero-board .route-node { border-color: var(--navy); }
 .route-ribbon-compact { display: flex; gap: 0; overflow-x: auto; padding-bottom: 8px; }
-.route-ribbon-compact li { min-width: 128px; min-height: 50px; grid-template-columns: 25px 1fr; }
+.route-ribbon-compact li { min-width: 148px; min-height: 50px; grid-template-columns: 25px 1fr; }
 .route-ribbon-compact li:not(:last-child)::before { top: 11px; right: -1px; bottom: auto; left: 20px; width: auto; height: 0; border-top: 3px dashed var(--teal); background: none; transform: scaleX(0); transform-origin: left; animation-name: route-draw-x; }
 .route-ribbon-compact .route-copy small { position: relative; z-index: 1; width: max-content; background: white; }
 .route-empty { padding: 22px; border: 1px dashed var(--line); color: var(--muted); font-size: .84rem; text-align: center; }
@@ -293,7 +293,8 @@ summary::-webkit-details-marker { display: none; }
 .stop-notes { margin: 12px 0 6px 64px; color: var(--muted); font-size: .78rem; }
 .scheduled-list { display: grid; gap: 1px; margin: 13px 0 13px 64px; background: var(--line); }
 .scheduled-row { display: grid; grid-template-columns: 62px 1fr auto; gap: 10px; align-items: center; padding: 10px; background: white; font-size: .76rem; }
-.scheduled-row > span:nth-child(2) { display: grid; }
+.scheduled-row > span:nth-child(2) { display: grid; min-width: 0; }
+.scheduled-row > span:nth-child(2) strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scheduled-row small { color: var(--muted); }
 .scheduled-actions, .recorded-cost-actions { display: flex; align-items: center; gap: 7px; }
 .scheduled-remove, .recorded-cost-remove { width: 27px; height: 27px; }
@@ -418,7 +419,8 @@ summary::-webkit-details-marker { display: none; }
 .itinerary-page { padding-block: 35px 85px; }
 .itinerary-layout { display: grid; grid-template-columns: 215px minmax(400px, 1fr) 245px; gap: 18px; align-items: start; }
 .itinerary-layout > *, .itinerary-main, .itinerary-budget-visual { min-width: 0; }
-.itinerary-route-card, .itinerary-budget-card { position: sticky; top: 95px; min-width: 0; max-width: 100%; padding: 17px; border: 1px solid var(--line); border-radius: 6px; background: white; }
+.itinerary-route-card { position: sticky; top: 95px; min-width: 0; max-width: 100%; padding: 17px; border: 1px solid var(--line); border-radius: 6px; background: white; }
+.itinerary-budget-card { min-width: 0; max-width: 100%; padding: 17px; border: 1px solid var(--line); border-radius: 6px; background: white; }
 .itinerary-route-card .route-ribbon { margin-top: 18px; }
 .view-toggle { display: inline-flex; margin-bottom: 12px; overflow: hidden; border: 1px solid var(--line); border-radius: 5px; background: white; }
 .view-toggle button { display: flex; align-items: center; gap: 6px; padding: 9px 13px; border: 0; background: white; cursor: pointer; font-size: .75rem; }
@@ -430,7 +432,8 @@ summary::-webkit-details-marker { display: none; }
 .itinerary-stop-heading p { margin: 0; color: var(--muted); font: .7rem var(--font-mono); }
 .timeline-list { display: grid; gap: 1px; margin-top: 17px; background: var(--line); }
 .timeline-row { display: grid; grid-template-columns: 48px 62px 1fr auto; gap: 12px; align-items: center; padding: 12px; background: var(--paper); font-size: .76rem; }
-.timeline-row > span:nth-child(3) { display: grid; }
+.timeline-row > span:nth-child(3) { display: grid; min-width: 0; }
+.timeline-row > span:nth-child(3) strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .timeline-row small { color: var(--muted); }
 .timeline-thumb { position: relative; width: 48px; height: 48px; overflow: hidden; border-radius: 4px; background: var(--navy); }
 .calendar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

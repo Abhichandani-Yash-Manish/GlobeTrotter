@@ -27,4 +27,11 @@ describe('request validation', () => {
     expect(inviteSchema.safeParse({ role: 'OWNER' }).success).toBe(false);
     expect(mediaMetadataSchema.safeParse({ altText: ' ' }).success).toBe(false);
   });
+
+  it('rejects emails with consecutive dots, leading/trailing dots, or spaces in domain', () => {
+    expect(signupSchema.safeParse({ name: 'Test', email: 'user..name@example.com', password: 'password123' }).success).toBe(false);
+    expect(signupSchema.safeParse({ name: 'Test', email: '.user@example.com', password: 'password123' }).success).toBe(false);
+    expect(signupSchema.safeParse({ name: 'Test', email: 'user.@example.com', password: 'password123' }).success).toBe(false);
+    expect(signupSchema.safeParse({ name: 'Test', email: '   ', password: 'password123' }).success).toBe(false);
+  });
 });

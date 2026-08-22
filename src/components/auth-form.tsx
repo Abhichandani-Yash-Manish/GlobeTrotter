@@ -31,8 +31,16 @@ export function AuthForm({
     setBusy(true);
     setMessage(null);
     const form = new FormData(event.currentTarget);
-    const email = String(form.get('email') ?? '');
+    const rawEmail = String(form.get('email') ?? '');
+    const email = rawEmail.trim().toLowerCase();
     const password = String(form.get('password') ?? '');
+
+    const emailRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+      setMessage('Enter a valid email address.');
+      setBusy(false);
+      return;
+    }
 
     try {
       if (mode === 'signup') {
