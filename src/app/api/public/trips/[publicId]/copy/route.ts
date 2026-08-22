@@ -40,6 +40,8 @@ export async function POST(
           endDate: stop.endDate,
           order: stop.order,
           notes: stop.notes,
+          arrivalMode: stop.arrivalMode,
+          arrivalDurationMinutes: stop.arrivalDurationMinutes,
         },
       });
       stopMap.set(stop.id, createdStop.id);

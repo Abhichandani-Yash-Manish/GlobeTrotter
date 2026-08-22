@@ -55,6 +55,7 @@ import type { ActivityDto, CityDto, PlannerStop, RouteMapData, TripDetail } from
 function SortableStop({
   stop,
   selected,
+  boardOpen,
   onBrowse,
   onDelete,
   onDeleteActivity,
@@ -66,6 +67,7 @@ function SortableStop({
 }: {
   stop: PlannerStop;
   selected: boolean;
+  boardOpen: boolean;
   onBrowse: () => void;
   onDelete: () => void;
   onDeleteActivity: (scheduledId: string, activityName: string) => void;
@@ -128,7 +130,7 @@ function SortableStop({
       </div>
       {canEdit && <details className="quick-edit stop-quick-edit"><summary><Pencil size={14} /> Edit stop details</summary><form className="quick-edit-form" onSubmit={onUpdateStop}><label>Arrive<input name="startDate" type="date" defaultValue={stop.startDate} required /></label><label>Depart<input name="endDate" type="date" defaultValue={stop.endDate} required /></label><label>Mode<select name="arrivalMode" defaultValue={stop.arrivalMode}><option value="train">Train</option><option value="flight">Flight</option><option value="drive">Drive</option><option value="transit">Transit</option><option value="bike">Bike</option><option value="walk">Walk</option><option value="other">Other</option></select></label><label>Travel minutes<input name="arrivalDurationMinutes" type="number" min="1" defaultValue={stop.arrivalDurationMinutes ?? ''} /></label><label className="full-field">Notes<input name="notes" maxLength={500} defaultValue={stop.notes ?? ''} /></label><button className="button button-dark button-small" type="submit" disabled={busy}>Save stop</button></form></details>}
       <button className="button button-ghost button-small" type="button" onClick={onBrowse} disabled={!canEdit}>
-        <Plus size={16} /> {selected ? 'Activity board open' : 'Browse activities'}
+        <Plus size={16} /> {selected && boardOpen ? 'Activity board open' : 'Browse activities'}
       </button>
     </article>
   );
@@ -376,6 +378,15 @@ export function PlannerClient({
     );
   }
 
+  async function updateExpense(expenseId: string, event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    await updateDetail(() => requestJson<TripDetail>(`/api/trips/${detail.trip.id}/expenses/${expenseId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ tripStopId: form.get('tripStopId') || null, category: form.get('category'), amount: Number(form.get('amount')), description: form.get('description'), date: form.get('date') }),
+    }), 'Cost details saved.');
+  }
+
   async function publishTrip() {
     setBusy(true);
     try {
@@ -474,6 +485,7 @@ export function PlannerClient({
                       key={stop.id}
                       stop={stop}
                       selected={selectedStopId === stop.id}
+                      boardOpen={activityBoardOpen}
                       onBrowse={() => browseActivities(stop)}
                       onDelete={() => deleteStop(stop)}
                       onDeleteActivity={(scheduledId, activityName) => deleteActivity(stop, scheduledId, activityName)}
@@ -546,6 +558,7 @@ export function PlannerClient({
                         <Trash2 size={13} />
                       </button>
                     </span>
+                    {canEdit && <details className="quick-edit expense-quick-edit"><summary><Pencil size={12} /> Edit cost</summary><form className="quick-edit-form" onSubmit={(event) => updateExpense(expense.id, event)}><label>Category<select name="category" defaultValue={expense.category}><option>Transport</option><option>Stay</option><option>Meals</option><option>Miscellaneous</option></select></label><label>Amount<input name="amount" type="number" min="0.01" step="0.01" defaultValue={expense.amount} required /></label><label>Date<input name="date" type="date" min={detail.trip.startDate} max={detail.trip.endDate} defaultValue={expense.date} required /></label><label>Stop<select name="tripStopId" defaultValue={expense.tripStopId ?? ''}><option value="">Whole trip</option>{detail.stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.city.name}</option>)}</select></label><label className="full-field">Label<input name="description" maxLength={180} defaultValue={expense.description ?? ''} /></label><button className="button button-dark button-small" type="submit" disabled={busy}>Save cost</button></form></details>}
                   </div>
                 ))}
               </div>
