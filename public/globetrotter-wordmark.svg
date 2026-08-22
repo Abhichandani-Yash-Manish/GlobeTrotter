@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 76" role="img" aria-labelledby="title desc">
+  <title id="title">GlobeTrotter</title><desc id="desc">A route-orbit globe beside the GlobeTrotter wordmark</desc>
+  <g transform="translate(4 6)"><circle cx="31" cy="32" r="24" fill="#fff" stroke="#17324d" stroke-width="3"/><path d="M7 32h48M31 8c-8 7-12 15-12 24s4 17 12 24M31 8c8 7 12 15 12 24s-4 17-12 24" fill="none" stroke="#0e7c7b" stroke-width="2"/><path d="M10 43C18 22 34 17 53 22" fill="none" stroke="#c94739" stroke-linecap="round" stroke-width="4"/><circle cx="11" cy="42" r="4" fill="#f6c445" stroke="#17324d" stroke-width="2"/><path d="M53 14a7 7 0 0 0-7 7c0 5 7 12 7 12s7-7 7-12a7 7 0 0 0-7-7Z" fill="#ff6b57" stroke="#fff" stroke-width="2"/></g>
+  <text x="82" y="50" fill="#17324d" font-family="Arial Narrow,Arial,sans-serif" font-size="44" font-weight="800" letter-spacing="-2">Globe<tspan fill="#c94739">Trotter</tspan></text>
+</svg>
