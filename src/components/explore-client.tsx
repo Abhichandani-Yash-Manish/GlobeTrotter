@@ -2,6 +2,7 @@
 
 import { Bookmark, MapPin, Search, Star } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { ImageWithFallback } from '@/components/image-with-fallback';
 import { StatusMessage } from '@/components/status-message';
 import { requestJson } from '@/lib/client-api';
@@ -58,8 +59,8 @@ export function ExploreClient({ initialCities }: { initialCities: ExploreCity[] 
       <div className="destination-grid">
         {cities.map((city) => (
           <article className="destination-card" key={city.id}>
-            <div className="destination-image"><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="(max-width: 760px) 100vw, 33vw" /><button className={`save-button ${city.saved ? 'saved' : ''}`} type="button" onClick={() => toggleSaved(city)} aria-label={`${city.saved ? 'Remove' : 'Save'} ${city.name}`}><Bookmark size={17} fill={city.saved ? 'currentColor' : 'none'} /></button></div>
-            <div className="destination-copy"><div className="destination-heading"><div><h2>{city.name}</h2><p><MapPin size={13} /> {city.country} · {city.region}</p></div><span><Star size={14} fill="currentColor" /> {city.popularity.toFixed(1)}</span></div><p>{city.description}</p><div className="cost-dots" aria-label={`Cost index ${city.costIndex} out of 5`}>{[1,2,3,4,5].map((dot) => <i key={dot} className={dot <= Math.round(city.costIndex) ? 'filled' : ''} />)}<small>estimated cost</small></div><div className="activity-preview">{city.activities.slice(0, 3).map((activity) => <span key={activity.id}>{activity.name}<strong>{formatMoney(activity.cost)}</strong></span>)}</div></div>
+            <div className="destination-image"><Link href={`/explore/${city.slug}`} aria-label={`Open ${city.name} destination dossier`}><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="(max-width: 760px) 100vw, 33vw" /></Link><button className={`save-button ${city.saved ? 'saved' : ''}`} type="button" onClick={() => toggleSaved(city)} aria-label={`${city.saved ? 'Remove' : 'Save'} ${city.name}`}><Bookmark size={17} fill={city.saved ? 'currentColor' : 'none'} /></button></div>
+            <div className="destination-copy"><div className="destination-heading"><div><h2><Link href={`/explore/${city.slug}`}>{city.name}</Link></h2><p><MapPin size={13} /> {city.country} · {city.region}</p></div><span><Star size={14} fill="currentColor" /> {city.popularity.toFixed(1)}</span></div><p>{city.description}</p><div className="destination-meta"><span>{city.bestSeason ?? 'Year-round'}</span><span>{city.idealDays ?? 3} ideal days</span></div><div className="cost-dots" aria-label={`Cost index ${city.costIndex} out of 5`}>{[1,2,3,4,5].map((dot) => <i key={dot} className={dot <= Math.round(city.costIndex) ? 'filled' : ''} />)}<small>estimated cost</small></div><div className="activity-preview">{city.activities.slice(0, 3).map((activity) => <span key={activity.id}>{activity.name}<strong>{formatMoney(activity.cost)}</strong></span>)}</div><Link className="card-link" href={`/explore/${city.slug}`}>Open field dossier →</Link></div>
           </article>
         ))}
       </div>

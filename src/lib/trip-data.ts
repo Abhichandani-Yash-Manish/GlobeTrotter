@@ -192,6 +192,7 @@ export async function getAccessibleTripDetail(userId: string, tripId: string): P
     collaborators: [
       ...(owner ? [{ userId: owner.id, name: owner.name, avatarUrl: owner.avatar, access: 'OWNER' as const }] : []),
       ...record.members.map((member) => ({
+        id: member.id,
         userId: member.user.id,
         name: member.user.name,
         avatarUrl: member.user.avatar,

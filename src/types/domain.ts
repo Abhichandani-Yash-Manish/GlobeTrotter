@@ -78,6 +78,7 @@ export type ArrivalMode = (typeof ARRIVAL_MODES)[number];
 export type TripAccess = 'OWNER' | 'EDITOR' | 'VIEWER';
 
 export type TripCollaborator = {
+  id?: string;
   userId: string;
   name: string;
   avatarUrl: string | null;
