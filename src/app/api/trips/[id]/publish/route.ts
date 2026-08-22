@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { apiData, apiError, parseRequest } from '@/lib/api';
 import { publishSchema } from '@/lib/validation';
+import { requireTripAccess } from '@/lib/trip-access';
 
 export async function PUT(
   request: Request,
@@ -14,8 +15,11 @@ export async function PUT(
   const parsed = await parseRequest(request, publishSchema);
   if (parsed.response) return parsed.response;
 
-  const trip = await prisma.trip.findFirst({
-    where: { id, userId: session.user.id },
+  const permission = await requireTripAccess(session.user.id, id, 'owner');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Only the trip owner can publish it.', 403);
+
+  const trip = await prisma.trip.findUnique({
+    where: { id },
     select: { id: true, publicId: true, stops: { select: { id: true } } },
   });
   if (!trip) return apiError('NOT_FOUND', 'Trip not found.', 404);

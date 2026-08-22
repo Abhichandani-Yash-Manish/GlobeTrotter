@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { calculateBudget, calculateTripHealth, dateKey } from '@/lib/domain';
+import { getTripAccess } from '@/lib/trip-access';
 import type {
   ActivityDto,
   CityDto,
@@ -29,9 +30,19 @@ export const tripDetailInclude = {
 
 export type TripRecord = Prisma.TripGetPayload<{ include: typeof tripDetailInclude }>;
 
+function stringList(value: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
 export function toCityDto(city: TripRecord['stops'][number]['city']): CityDto {
   return {
     id: city.id,
+    slug: city.slug,
     name: city.name,
     country: city.country,
     region: city.region,
@@ -41,10 +52,18 @@ export function toCityDto(city: TripRecord['stops'][number]['city']): CityDto {
     imageUrl: city.imageUrl,
     latitude: city.latitude,
     longitude: city.longitude,
+    bestSeason: city.bestSeason,
+    idealDays: city.idealDays,
+    timezone: city.timezone,
+    currencyCode: city.currencyCode,
+    dailyBudget: city.dailyBudget,
+    tags: stringList(city.tags),
+    imageCredit: city.imageCredit,
+    imageSourceUrl: city.imageSourceUrl,
   };
 }
 
-function toActivityDto(activity: TripRecord['stops'][number]['activities'][number]['activity']): ActivityDto {
+export function toActivityDto(activity: TripRecord['stops'][number]['activities'][number]['activity']): ActivityDto {
   return {
     id: activity.id,
     name: activity.name,
@@ -54,6 +73,15 @@ function toActivityDto(activity: TripRecord['stops'][number]['activities'][numbe
     duration: activity.duration,
     imageUrl: activity.imageUrl,
     cityId: activity.cityId,
+    address: activity.address,
+    latitude: activity.latitude,
+    longitude: activity.longitude,
+    websiteUrl: activity.websiteUrl,
+    bookingUrl: activity.bookingUrl,
+    accessibility: activity.accessibility,
+    tags: stringList(activity.tags),
+    imageCredit: activity.imageCredit,
+    imageSourceUrl: activity.imageSourceUrl,
   };
 }
 
@@ -81,6 +109,8 @@ function toStopDto(stop: TripRecord['stops'][number]): PlannerStop {
     endDate: dateKey(stop.endDate),
     order: stop.order,
     notes: stop.notes,
+    arrivalMode: stop.arrivalMode as PlannerStop['arrivalMode'],
+    arrivalDurationMinutes: stop.arrivalDurationMinutes,
     city: toCityDto(stop.city),
     activities: stop.activities.map(toScheduledActivityDto),
   };
@@ -135,11 +165,41 @@ export function toTripDetail(record: TripRecord, includeAuthor = false): TripDet
 }
 
 export async function getOwnedTripDetail(userId: string, tripId: string): Promise<TripDetail | null> {
-  const record = await prisma.trip.findFirst({
-    where: { id: tripId, userId },
-    include: tripDetailInclude,
+  return getAccessibleTripDetail(userId, tripId);
+}
+
+export async function getAccessibleTripDetail(userId: string, tripId: string): Promise<TripDetail | null> {
+  const access = await getTripAccess(userId, tripId);
+  if (!access) return null;
+  const record = await prisma.trip.findUnique({
+    where: { id: tripId },
+    include: {
+      ...tripDetailInclude,
+      members: {
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+        orderBy: { createdAt: 'asc' },
+      },
+    },
   });
-  return record ? toTripDetail(record) : null;
+  if (!record) return null;
+  const owner = await prisma.user.findUnique({
+    where: { id: record.userId },
+    select: { id: true, name: true, avatar: true },
+  });
+  return {
+    ...toTripDetail(record),
+    access,
+    collaborators: [
+      ...(owner ? [{ userId: owner.id, name: owner.name, avatarUrl: owner.avatar, access: 'OWNER' as const }] : []),
+      ...record.members.map((member) => ({
+        id: member.id,
+        userId: member.user.id,
+        name: member.user.name,
+        avatarUrl: member.user.avatar,
+        access: member.role as 'EDITOR' | 'VIEWER',
+      })),
+    ],
+  };
 }
 
 export async function getPublicTripDetail(publicId: string): Promise<TripDetail | null> {

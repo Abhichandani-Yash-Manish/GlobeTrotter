@@ -25,6 +25,15 @@ const activity: ActivityDto = {
   duration: 2,
   imageUrl: null,
   cityId: 'city-1',
+  address: null,
+  latitude: null,
+  longitude: null,
+  websiteUrl: null,
+  bookingUrl: null,
+  accessibility: null,
+  tags: [],
+  imageCredit: null,
+  imageSourceUrl: null,
 };
 
 function stop(overrides: Partial<PlannerStop> = {}): PlannerStop {
@@ -35,10 +44,14 @@ function stop(overrides: Partial<PlannerStop> = {}): PlannerStop {
     endDate: '2026-09-03',
     order: 0,
     notes: null,
+    arrivalMode: 'train',
+    arrivalDurationMinutes: null,
     city: {
-      id: 'city-1', name: 'Lisbon', country: 'Portugal', region: 'Europe',
+      id: 'city-1', slug: 'lisbon-portugal', name: 'Lisbon', country: 'Portugal', region: 'Europe',
       costIndex: 3, popularity: 4.4, description: null, imageUrl: null,
       latitude: null, longitude: null,
+      bestSeason: null, idealDays: null, timezone: null, currencyCode: null,
+      dailyBudget: null, tags: [], imageCredit: null, imageSourceUrl: null,
     },
     activities: [],
     ...overrides,

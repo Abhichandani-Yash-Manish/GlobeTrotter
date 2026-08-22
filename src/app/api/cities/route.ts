@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { apiData } from '@/lib/api';
+import { toActivityDto, toCityDto } from '@/lib/trip-data';
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -43,18 +44,9 @@ export async function GET(request: Request) {
 
   return apiData(
     cities.map((city) => ({
-      id: city.id,
-      name: city.name,
-      country: city.country,
-      region: city.region,
-      costIndex: city.costIndex,
-      popularity: city.popularity,
-      description: city.description,
-      imageUrl: city.imageUrl,
-      latitude: city.latitude,
-      longitude: city.longitude,
+      ...toCityDto(city),
       saved: 'savedDestinations' in city && city.savedDestinations.length > 0,
-      activities: city.activities,
+      activities: city.activities.map(toActivityDto),
     })),
   );
 }

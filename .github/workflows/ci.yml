@@ -2,7 +2,7 @@ name: GlobeTrotter checks
 
 on:
   push:
-    branches: [main, codex/globetrotter-core]
+    branches: [main, codex/globetrotter-core, codex/globetrotter-depth]
   pull_request:
 
 jobs:

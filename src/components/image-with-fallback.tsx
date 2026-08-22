@@ -30,6 +30,8 @@ export function ImageWithFallback({
       alt={alt}
       sizes={sizes}
       priority={priority}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'auto'}
       onError={() => setFailed(true)}
     />
   );

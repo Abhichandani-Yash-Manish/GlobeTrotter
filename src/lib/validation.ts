@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EXPENSE_CATEGORIES } from '@/types/domain';
+import { ARRIVAL_MODES, EXPENSE_CATEGORIES } from '@/types/domain';
 
 const trimmed = z.string().trim();
 const emailInput = trimmed.toLowerCase().pipe(z.email('Enter a valid email address.'));
@@ -7,7 +7,12 @@ const dateInput = trimmed
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a date in YYYY-MM-DD format.')
   .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)), 'Enter a valid date.');
 const optionalUrl = z
-  .union([z.url('Enter a valid URL.'), z.literal(''), z.null()])
+  .union([
+    z.url('Enter a valid URL.'),
+    trimmed.regex(/^\/api\/media\/[A-Za-z0-9_-]+$/, 'Choose an uploaded GlobeTrotter image or enter a valid URL.'),
+    z.literal(''),
+    z.null(),
+  ])
   .transform((value) => value || null);
 
 export const signupSchema = z.object({
@@ -39,6 +44,7 @@ export const updateTripSchema = z
     endDate: dateInput.optional(),
     coverImage: optionalUrl.optional(),
     budget: z.number().finite().positive().nullable().optional(),
+    isPublic: z.boolean().optional(),
   })
   .refine(
     (data) => !data.startDate || !data.endDate || data.endDate >= data.startDate,
@@ -51,6 +57,8 @@ export const stopSchema = z
     startDate: dateInput,
     endDate: dateInput,
     notes: trimmed.max(500).optional().default(''),
+    arrivalMode: z.enum(ARRIVAL_MODES).optional().default('train'),
+    arrivalDurationMinutes: z.number().int().positive().max(10080).nullable().optional(),
   })
   .refine((data) => data.endDate >= data.startDate, {
     path: ['endDate'],
@@ -61,6 +69,8 @@ export const updateStopSchema = z.object({
   startDate: dateInput.optional(),
   endDate: dateInput.optional(),
   notes: trimmed.max(500).optional(),
+  arrivalMode: z.enum(ARRIVAL_MODES).optional(),
+  arrivalDurationMinutes: z.number().int().positive().max(10080).nullable().optional(),
 });
 
 export const scheduleActivitySchema = z.object({
@@ -114,4 +124,19 @@ export const deleteAccountSchema = z.object({
 
 export const deleteTripSchema = z.object({
   confirmation: z.literal('DELETE'),
+});
+
+export const forgotPasswordSchema = z.object({ email: emailInput });
+
+export const resetPasswordSchema = z.object({
+  token: trimmed.min(20, 'This recovery link is invalid.'),
+  password: z.string().min(8, 'Password must be at least 8 characters.').max(128),
+});
+
+export const inviteSchema = z.object({
+  role: z.enum(['EDITOR', 'VIEWER']),
+});
+
+export const mediaMetadataSchema = z.object({
+  altText: trimmed.min(2, 'Describe this image.').max(140),
 });

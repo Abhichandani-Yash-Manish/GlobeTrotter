@@ -12,7 +12,9 @@ export async function GET(request: Request) {
   const searchParams = new URL(request.url).searchParams;
   const search = searchParams.get('search')?.trim();
   const status = searchParams.get('status');
-  const where: Prisma.TripWhereInput = { userId: session.user.id };
+  const where: Prisma.TripWhereInput = {
+    OR: [{ userId: session.user.id }, { members: { some: { userId: session.user.id } } }],
+  };
 
   if (search) where.name = { contains: search };
   const now = new Date();
@@ -34,6 +36,7 @@ export async function GET(request: Request) {
         orderBy: { order: 'asc' },
       },
       expenses: true,
+      members: { where: { userId: session.user.id }, select: { role: true } },
     },
     orderBy: { startDate: 'desc' },
   });
@@ -41,6 +44,7 @@ export async function GET(request: Request) {
   return apiData(
     trips.map((trip) => ({
       id: trip.id,
+      access: trip.userId === session.user.id ? 'OWNER' : trip.members[0]?.role,
       name: trip.name,
       description: trip.description,
       startDate: dateKey(trip.startDate),

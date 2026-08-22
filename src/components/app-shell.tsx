@@ -3,23 +3,27 @@ import type { ReactNode } from 'react';
 import { Brand } from '@/components/brand';
 import { signOut } from '@/lib/auth';
 import { requireUser } from '@/lib/session';
-
-const links = [
-  { href: '/dashboard', label: 'Home', code: '01' },
-  { href: '/trips', label: 'Trips', code: '02' },
-  { href: '/explore', label: 'Explore', code: '03' },
-  { href: '/settings', label: 'Settings', code: '04' },
-];
+import prisma from '@/lib/prisma';
+import { normalizeLanguage, primaryCopy } from '@/lib/i18n';
 
 export async function AppShell({ children }: { children: ReactNode }) {
   const user = await requireUser();
+  const preference = await prisma.user.findUnique({ where: { id: user.id }, select: { language: true } });
+  const language = normalizeLanguage(preference?.language ?? 'en');
+  const copy = primaryCopy[language];
+  const links = [
+    { href: '/dashboard', label: copy.home, code: '01' },
+    { href: '/trips', label: copy.trips, code: '02' },
+    { href: '/explore', label: copy.explore, code: '03' },
+    { href: '/settings', label: copy.settings, code: '04' },
+  ];
 
   return (
     <div className="app-frame">
       <header className="app-header">
         <div className="page-width app-header-row">
           <Brand href="/dashboard" />
-          <nav className="app-nav" aria-label="Application navigation">
+          <nav className="app-nav" aria-label={copy.nav}>
             {links.map((link) => (
               <Link key={link.href} href={link.href}>
                 <span>{link.code}</span>
@@ -38,7 +42,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 await signOut({ redirectTo: '/' });
               }}
             >
-              <button className="text-button" type="submit">Sign out</button>
+              <button className="text-button" type="submit">{copy.signOut}</button>
             </form>
           </div>
         </div>

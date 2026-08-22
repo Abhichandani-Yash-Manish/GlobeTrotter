@@ -37,6 +37,8 @@ export async function PUT(request: Request, { params }: RouteContext) {
   if (parsed.data.startDate !== undefined) data.startDate = toUtcDate(startDate);
   if (parsed.data.endDate !== undefined) data.endDate = toUtcDate(endDate);
   if (parsed.data.notes !== undefined) data.notes = parsed.data.notes || null;
+  if (parsed.data.arrivalMode !== undefined) data.arrivalMode = parsed.data.arrivalMode;
+  if (parsed.data.arrivalDurationMinutes !== undefined) data.arrivalDurationMinutes = parsed.data.arrivalDurationMinutes;
   await prisma.tripStop.update({ where: { id: stopId }, data });
   return apiData(await getOwnedTripDetail(session.user.id, id));
 }

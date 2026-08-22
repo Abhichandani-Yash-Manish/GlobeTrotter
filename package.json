@@ -16,7 +16,8 @@
     "db:seed": "prisma db seed",
     "db:reset": "npm run db:prepare && prisma migrate reset --force",
     "reset-demo": "npm run db:reset",
-    "check": "npm run db:generate && npm run lint && npm run test && npm run build",
+    "verify:demo": "node scripts/verify-demo.mjs",
+    "check": "npm run db:generate && npm run lint && npm run test && npm run build && npm run verify:demo",
     "postinstall": "prisma generate"
   },
   "engines": {
@@ -33,6 +34,7 @@
     "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.33.0",
+    "maplibre-gl": "^6.5.0",
     "nanoid": "^6.0.1",
     "next": "16.3.2",
     "next-auth": "^5.0.0-beta.32",
@@ -40,6 +42,7 @@
     "react-dom": "19.2.8",
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.10.1",
+    "sharp": "^0.35.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {

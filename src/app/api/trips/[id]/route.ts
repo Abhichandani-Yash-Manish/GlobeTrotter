@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { apiData, apiError, parseRequest } from '@/lib/api';
 import { dateKey } from '@/lib/domain';
 import { getOwnedTripDetail } from '@/lib/trip-data';
+import { requireTripAccess } from '@/lib/trip-access';
 import { deleteTripSchema, updateTripSchema } from '@/lib/validation';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -25,8 +26,11 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const parsed = await parseRequest(request, updateTripSchema);
   if (parsed.response) return parsed.response;
 
-  const trip = await prisma.trip.findFirst({
-    where: { id, userId: session.user.id },
+  const permission = await requireTripAccess(session.user.id, id, 'edit');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'You do not have editing access to this trip.', 403);
+
+  const trip = await prisma.trip.findUnique({
+    where: { id },
     include: { stops: { include: { city: { select: { name: true } } } } },
   });
   if (!trip) return apiError('NOT_FOUND', 'Trip not found.', 404);
@@ -74,8 +78,11 @@ export async function DELETE(request: Request, { params }: RouteContext) {
   const parsed = await parseRequest(request, deleteTripSchema);
   if (parsed.response) return parsed.response;
 
-  const trip = await prisma.trip.findFirst({
-    where: { id, userId: session.user.id },
+  const permission = await requireTripAccess(session.user.id, id, 'owner');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Only the trip owner can delete it.', 403);
+
+  const trip = await prisma.trip.findUnique({
+    where: { id },
     select: { id: true, name: true, startDate: true },
   });
   if (!trip) return apiError('NOT_FOUND', 'Trip not found.', 404);

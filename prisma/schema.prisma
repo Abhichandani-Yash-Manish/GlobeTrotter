@@ -19,6 +19,10 @@ model User {
   updatedAt         DateTime           @updatedAt
   trips             Trip[]
   savedDestinations SavedDestination[]
+  tripMemberships   TripMember[]
+  createdInvites    TripInvite[]        @relation("InviteCreator")
+  resetTokens       PasswordResetToken[]
+  mediaAssets       MediaAsset[]
 }
 
 model Trip {
@@ -37,6 +41,8 @@ model Trip {
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   stops       TripStop[]
   expenses    Expense[]
+  members     TripMember[]
+  invites     TripInvite[]
 
   @@index([userId])
   @@index([publicId])
@@ -50,6 +56,8 @@ model TripStop {
   endDate    DateTime
   order      Int
   notes      String?
+  arrivalMode String        @default("train")
+  arrivalDurationMinutes Int?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
   trip       Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
@@ -64,6 +72,7 @@ model TripStop {
 
 model City {
   id                String             @id @default(cuid())
+  slug              String             @unique
   name              String
   country           String
   region            String
@@ -73,6 +82,14 @@ model City {
   imageUrl          String?
   latitude          Float?
   longitude         Float?
+  bestSeason        String?
+  idealDays         Int?
+  timezone          String?
+  currencyCode      String?
+  dailyBudget       Float?
+  tags              String             @default("[]")
+  imageCredit       String?
+  imageSourceUrl    String?
   createdAt         DateTime           @default(now())
   stops             TripStop[]
   activities        Activity[]
@@ -92,6 +109,15 @@ model Activity {
   cost          Float          @default(0)
   duration      Float          @default(1)
   imageUrl      String?
+  address       String?
+  latitude      Float?
+  longitude     Float?
+  websiteUrl    String?
+  bookingUrl    String?
+  accessibility String?
+  tags          String         @default("[]")
+  imageCredit   String?
+  imageSourceUrl String?
   cityId        String
   createdAt     DateTime       @default(now())
   city          City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
@@ -148,4 +174,81 @@ model SavedDestination {
 
   @@unique([userId, cityId])
   @@index([userId])
+}
+
+model TripMember {
+  id        String   @id @default(cuid())
+  tripId    String
+  userId    String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, userId])
+  @@index([userId])
+}
+
+model TripInvite {
+  id         String    @id @default(cuid())
+  tripId     String
+  creatorId  String
+  tokenHash  String    @unique
+  role       String
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  trip       Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  creator    User      @relation("InviteCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  ownerId   String
+  mimeType  String
+  bytes     Bytes
+  width     Int
+  height    Int
+  size      Int
+  altText   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model RouteSegmentCache {
+  id              String   @id @default(cuid())
+  fromCityId      String
+  toCityId        String
+  mode            String
+  provider        String
+  geometry        String
+  distanceKm      Float
+  durationMinutes Int
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([fromCityId, toCityId, mode, provider])
+  @@index([expiresAt])
 }

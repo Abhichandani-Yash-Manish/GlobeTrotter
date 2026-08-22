@@ -100,6 +100,7 @@ export function AuthForm({
           {busy && <LoaderCircle className="spin" size={18} />}
           {mode === 'login' ? 'Sign in' : 'Create account'}
         </button>
+        {mode === 'login' && <Link className="forgot-link" href="/forgot-password">Forgot password?</Link>}
       </form>
       <p className="auth-switch">
         {mode === 'login' ? 'New to GlobeTrotter?' : 'Already have an account?'}{' '}

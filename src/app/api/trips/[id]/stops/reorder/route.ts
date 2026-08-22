@@ -4,6 +4,7 @@ import { apiData, apiError, parseRequest } from '@/lib/api';
 import { getOwnedTripDetail } from '@/lib/trip-data';
 import { validateExactReorder } from '@/lib/reorder';
 import { reorderSchema } from '@/lib/validation';
+import { requireTripAccess } from '@/lib/trip-access';
 
 export async function PUT(
   request: Request,
@@ -14,8 +15,10 @@ export async function PUT(
   const { id } = await params;
   const parsed = await parseRequest(request, reorderSchema);
   if (parsed.response) return parsed.response;
-  const trip = await prisma.trip.findFirst({
-    where: { id, userId: session.user.id },
+  const permission = await requireTripAccess(session.user.id, id, 'edit');
+  if (!permission.allowed) return apiError('FORBIDDEN', 'Editing access is required.', 403);
+  const trip = await prisma.trip.findUnique({
+    where: { id },
     select: { stops: { select: { id: true } } },
   });
   if (!trip) return apiError('NOT_FOUND', 'Trip not found.', 404);

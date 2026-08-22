@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export const proxy = auth((request) => {
   const { pathname } = request.nextUrl;
   const isLoggedIn = Boolean(request.auth);
-  const publicRoutes = ['/login', '/signup', '/forgot-password'];
+  const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   if (
