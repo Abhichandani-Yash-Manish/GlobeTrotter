@@ -23,37 +23,35 @@ class ConsoleEmailProvider implements EmailProvider {
 // SMTP provider — sends a real email via nodemailer
 // ---------------------------------------------------------------------------
 class SmtpEmailProvider implements EmailProvider {
-  private transporter: Transporter;
-  private from: string;
-
-  constructor() {
+  private createTransporter(): { transporter: Transporter; from: string } {
     const host = process.env.SMTP_HOST;
     const port = Number(process.env.SMTP_PORT || '587');
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
-    this.from = process.env.SMTP_FROM || 'noreply@globetrotter.com';
+    const from = process.env.SMTP_FROM || 'noreply@globetrotter.com';
 
     if (!host) {
-      throw new Error(
-        'SMTP_HOST is required when EMAIL_PROVIDER is set to "smtp". ' +
-        'Check your .env file.',
-      );
+      throw new Error('SMTP_HOST is required when EMAIL_PROVIDER is set to "smtp".');
     }
+    if (!Number.isInteger(port) || port < 1 || port > 65_535) throw new Error('SMTP_PORT must be a valid TCP port.');
+    if (Boolean(user) !== Boolean(pass)) throw new Error('SMTP_USER and SMTP_PASS must be configured together.');
 
-    this.transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransport({
       host,
       port,
       secure: port === 465,
       ...(user && pass ? { auth: { user, pass } } : {}),
     });
+    return { transporter, from };
   }
 
   async sendPasswordRecovery({ recipient, resetUrl }: PasswordRecoveryMessage) {
+    const { transporter, from } = this.createTransporter();
     const html = buildRecoveryEmailHtml(resetUrl);
     const text = buildRecoveryEmailText(resetUrl);
 
-    await this.transporter.sendMail({
-      from: this.from,
+    await transporter.sendMail({
+      from,
       to: recipient,
       subject: 'GlobeTrotter — Reset your password',
       html,
@@ -65,7 +63,8 @@ class SmtpEmailProvider implements EmailProvider {
 // ---------------------------------------------------------------------------
 // HTML template for the recovery email
 // ---------------------------------------------------------------------------
-function buildRecoveryEmailHtml(resetUrl: string): string {
+export function buildRecoveryEmailHtml(resetUrl: string): string {
+  const safeResetUrl = resetUrl.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -84,7 +83,7 @@ function buildRecoveryEmailHtml(resetUrl: string): string {
           </p>
           <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px">
             <tr><td style="background:#2563eb;border-radius:8px">
-              <a href="${resetUrl}" target="_blank" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">
+              <a href="${safeResetUrl}" target="_blank" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">
                 Reset Password
               </a>
             </td></tr>
@@ -92,7 +91,7 @@ function buildRecoveryEmailHtml(resetUrl: string): string {
           <p style="margin:0 0 8px;color:#4a4a68;font-size:13px;line-height:1.5">
             If the button doesn't work, copy and paste this URL into your browser:
           </p>
-          <p style="margin:0 0 24px;word-break:break-all;color:#2563eb;font-size:13px">${resetUrl}</p>
+          <p style="margin:0 0 24px;word-break:break-all;color:#2563eb;font-size:13px">${safeResetUrl}</p>
           <hr style="border:none;border-top:1px solid #e8e8ee;margin:24px 0">
           <p style="margin:0;color:#9ca3af;font-size:12px;line-height:1.5">
             If you didn't request this, you can safely ignore this email — your password will remain unchanged.
@@ -111,7 +110,7 @@ function buildRecoveryEmailHtml(resetUrl: string): string {
 // ---------------------------------------------------------------------------
 // Plain-text fallback for email clients that don't render HTML
 // ---------------------------------------------------------------------------
-function buildRecoveryEmailText(resetUrl: string): string {
+export function buildRecoveryEmailText(resetUrl: string): string {
   return [
     'GlobeTrotter — Reset your password',
     '',

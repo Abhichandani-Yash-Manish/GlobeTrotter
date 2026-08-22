@@ -25,9 +25,13 @@ export async function POST(request: Request) {
     ]);
     const resetUrl = new URL('/reset-password', request.url);
     resetUrl.searchParams.set('token', token);
-    await emailProvider.sendPasswordRecovery({ recipient: user.email, resetUrl: resetUrl.toString() });
+    try {
+      await emailProvider.sendPasswordRecovery({ recipient: user.email, resetUrl: resetUrl.toString() });
+    } catch (error) {
+      // Preserve the same public response for known and unknown addresses.
+      console.error('[GlobeTrotter recovery] Delivery failed.', error);
+    }
   }
 
   return apiData({ message: GENERIC_MESSAGE });
 }
-
