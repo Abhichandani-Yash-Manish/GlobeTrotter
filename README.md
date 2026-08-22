@@ -49,6 +49,10 @@ npm run check
 
 The gate regenerates Prisma Client, runs ESLint with zero warnings, executes the domain/validation/security-rule tests, and produces an optimized Next.js build. CI additionally creates a fresh SQLite database, applies the committed migration, and seeds it before the gate.
 
+### Known dependency advisory
+
+As reviewed on 22 August 2026, `npm audit` reports three high-severity package entries that all trace to one [`deepmerge-ts` recursive-object stack-exhaustion advisory](https://github.com/advisories/GHSA-ggr8-5vv4-36mx) through Prisma's CLI/configuration dependency chain. npm's suggested automatic fix is a breaking downgrade from Prisma 7.9.1 to Prisma 6.12.0. GlobeTrotter therefore retains its tested Prisma 7 SQLite-adapter setup, passes only repository-controlled configuration into that toolchain, and records the advisory here for re-evaluation before production deployment.
+
 ## The judged journey
 
 1. Credentials or one-click demo sign-in.
