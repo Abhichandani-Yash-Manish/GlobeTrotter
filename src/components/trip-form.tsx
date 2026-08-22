@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
 import { requestJson } from '@/lib/client-api';
+import { displayToBaseAmount } from '@/lib/format';
 import { StatusMessage } from '@/components/status-message';
 
 export function TripForm() {
@@ -26,7 +27,7 @@ export function TripForm() {
           description: form.get('description'),
           startDate: form.get('startDate'),
           endDate: form.get('endDate'),
-          budget: budgetValue ? Number(budgetValue) : null,
+          budget: budgetValue ? displayToBaseAmount(Number(budgetValue)) : null,
           isPublic: form.get('privacy') === 'public',
         }),
       });
@@ -60,8 +61,8 @@ export function TripForm() {
       </label>
       <div className="form-grid two-columns">
         <label>
-          Budget estimate (USD)
-          <input name="budget" type="number" min="1" step="1" placeholder="2400" />
+          Budget estimate (₹)
+          <input name="budget" type="number" min="100" step="100" placeholder="150000" />
         </label>
         <label>
           Visibility

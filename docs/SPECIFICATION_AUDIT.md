@@ -11,7 +11,7 @@ The supplied GlobeTrotter problem statement is the requirements source. This aud
 | Destination discovery | SQLite search/filters, rich dossier, map, season/stay/budget facts, saved state, add-to-trip action |
 | Planner | city/activity filters, images and source facts, stops, arrival modes, schedule/cost/notes editing, stop/activity ordering |
 | Itinerary/calendar | list/calendar/map views, expandable day cards, activity imagery, day totals, over-budget markers, planner edit handoff |
-| Budget | exact aggregate, remaining amount, average/day, category breakdown, donut, daily bars, ceiling violations |
+| Budget | INR-first display/input, exact base aggregate, remaining amount, average/day, category breakdown, dated FX pocket guide, donut, daily bars, ceiling violations |
 | Public sharing | stable public ID, sanitized read model, native share, copy link, WhatsApp, email, print, independent deep-copy |
 | Collaboration | seven-day editor/viewer invites, acceptance/revocation, member removal, shared-trip lists, nested server authorization |
 | Settings | profile, processed avatar upload, default privacy, password/account actions, saved-list removal, persistent language choice |
@@ -31,7 +31,7 @@ The supplied GlobeTrotter problem statement is the requirements source. This aud
 
 - optional admin dashboard;
 - live booking inventory or price claims;
-- currency conversion;
+- live transactional exchange rates or booking quotes;
 - real-time sockets, cursors, chat, or voting;
 - travel-document storage;
 - hosted persistent database configuration.

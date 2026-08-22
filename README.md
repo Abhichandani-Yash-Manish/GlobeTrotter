@@ -8,12 +8,12 @@ The product’s visual language is an editorial transit atlas: ticket codes, rou
 
 - Production: `https://globetrotter-vert-ten.vercel.app`
 - App: `http://localhost:3000`
-- Traveler: `demo@globetrotter.com` / `password123`
-- Collaborator: `admin@globetrotter.com` / `admin123`
+- Traveler: Aarav Patel · `demo@globetrotter.com` / `password123`
+- Collaborator: Meera Shah · `admin@globetrotter.com` / `admin123`
 - European itinerary: `http://localhost:3000/share/demo-europe-trip`
 - Western India itinerary: `http://localhost:3000/share/demo-western-india`
 
-> Costs are labelled USD estimates. GlobeTrotter does not claim live prices, booking inventory, or currency conversion.
+> Costs display in Indian rupees by default. The database retains one consistent USD planning base and converts every rupee form value back to that base, so totals remain exact. The compact converter uses offline [ECB reference cross-rates](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html) dated 14 August 2026 and does not claim live prices or booking inventory.
 
 ## Product evidence
 
@@ -35,6 +35,7 @@ The product’s visual language is an editorial transit atlas: ticket codes, rou
 - MapLibre maps on destination, planner, review, and public surfaces using keyless OpenFreeMap tiles. Routes use cached Geoapify results when configured and persisted-coordinate geodesic fallbacks otherwise.
 - Stop and activity scheduling, exact reordering, quick editing, arrival mode/context, expenses, list/calendar/map review, and refresh-persistent mutations.
 - Recharts category donut and daily-spend charts with remaining budget, category totals, average per day, and over-budget markers.
+- INR-first money display and input throughout the core journey, plus a compact USD/EUR/GBP/AED planning converter with a visible reference date.
 - Explainable Trip Health for gaps, overlaps, open days, out-of-range schedules, and budget overruns.
 - Owner/editor/viewer collaboration through hashed seven-day invite links and server-side access checks on every nested mutation.
 - Stable public URLs, native sharing, copy link, WhatsApp, email, print, and transactional deep-copy.
@@ -161,7 +162,7 @@ average per day = spent / inclusive trip days
 ## Optional services and offline behavior
 
 - `GEOAPIFY_API_KEY`: enables server-side road/walk/bike/transit routing and 30-day route caching. It is never sent to the client.
-- `EMAIL_PROVIDER=console`: the default local adapter prints recovery URLs to the terminal. A deployment can replace the adapter without changing the recovery domain flow.
+- `EMAIL_PROVIDER=console`: the default local adapter prints recovery URLs to the terminal. Set it to `smtp` with the documented SMTP variables to send the responsive HTML and plain-text recovery email without changing the recovery domain flow.
 - OpenFreeMap requires no project key. If map tiles fail, route ribbons and textual stop/segment equivalents remain visible.
 - Seeded city/activity content and images are committed as reviewed data records; the seed never calls an external enrichment API.
 
@@ -177,7 +178,7 @@ average per day = spent / inclusive trip days
 
 ## Deliberate scope
 
-The optional admin dashboard, live booking, currency conversion, real-time cursors/chat, and travel-document vault are excluded. SQLite remains the authoritative local judged environment because it offers migrations, constraints, indexes, transactions, and a repeatable offline demo. Production uses Turso's libSQL-compatible hosted SQLite so the same relational model remains durable on Vercel.
+The optional admin dashboard, live booking, real-time exchange quotes, real-time cursors/chat, and travel-document vault are excluded. SQLite remains the authoritative local judged environment because it offers migrations, constraints, indexes, transactions, and a repeatable offline demo. Production uses Turso's libSQL-compatible hosted SQLite so the same relational model remains durable on Vercel.
 
 `npm audit` currently traces three high advisories to one `deepmerge-ts` recursive-object advisory in Prisma’s CLI/configuration dependency chain. npm proposes a breaking Prisma 6 downgrade; the project retains its tested Prisma 7.9.1 adapter setup and documents the advisory for production re-evaluation.
 

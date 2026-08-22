@@ -65,7 +65,7 @@ export function ItineraryView({ detail, mapData }: { detail: TripDetail; mapData
         ) : <RouteMap data={mapData} />}
       </section>
       <aside className="itinerary-budget-card">
-        <div className="panel-heading"><span>COST BREAKDOWN</span><strong>USD</strong></div>
+        <div className="panel-heading"><span>COST BREAKDOWN</span><strong>INR</strong></div>
         <div className="big-number">{formatMoney(detail.budget.spent)}</div>
         <p>{detail.budget.remaining === null ? 'No budget ceiling set' : `${formatMoney(detail.budget.remaining)} remaining`}</p>
         <dl className="budget-breakdown">
