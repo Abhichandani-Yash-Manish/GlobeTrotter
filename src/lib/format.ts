@@ -1,5 +1,5 @@
-export function formatDate(value: string | Date, options?: Intl.DateTimeFormatOptions): string {
-  return new Intl.DateTimeFormat('en-US', {
+export function formatDate(value: string | Date, options?: Intl.DateTimeFormatOptions, locale = 'en-US'): string {
+  return new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -8,8 +8,8 @@ export function formatDate(value: string | Date, options?: Intl.DateTimeFormatOp
   }).format(typeof value === 'string' ? new Date(`${value.slice(0, 10)}T00:00:00.000Z`) : value);
 }
 
-export function formatMoney(value: number): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatMoney(value: number, locale = 'en-US'): string {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0,

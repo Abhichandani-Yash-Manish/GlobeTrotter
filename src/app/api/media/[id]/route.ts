@@ -10,10 +10,16 @@ export async function GET(_request: Request, { params }: RouteContext) {
   if (!asset) return apiError('NOT_FOUND', 'Image not found.', 404);
 
   const path = `/api/media/${id}`;
+  const viewerId = session?.user?.id;
   const mayRead =
-    session?.user?.id === asset.ownerId ||
+    viewerId === asset.ownerId ||
     (await prisma.trip.count({
-      where: { isPublic: true, OR: [{ coverImage: path }, { user: { avatar: path } }] },
+      where: {
+        OR: [
+          { isPublic: true, OR: [{ coverImage: path }, { user: { avatar: path } }] },
+          ...(viewerId ? [{ coverImage: path, OR: [{ userId: viewerId }, { members: { some: { userId: viewerId } } }] }] : []),
+        ],
+      },
     })) > 0;
   if (!mayRead) return apiError('NOT_FOUND', 'Image not found.', 404);
 
@@ -26,4 +32,3 @@ export async function GET(_request: Request, { params }: RouteContext) {
     },
   });
 }
-

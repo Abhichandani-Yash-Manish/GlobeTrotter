@@ -7,7 +7,12 @@ const dateInput = trimmed
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a date in YYYY-MM-DD format.')
   .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)), 'Enter a valid date.');
 const optionalUrl = z
-  .union([z.url('Enter a valid URL.'), z.literal(''), z.null()])
+  .union([
+    z.url('Enter a valid URL.'),
+    trimmed.regex(/^\/api\/media\/[A-Za-z0-9_-]+$/, 'Choose an uploaded GlobeTrotter image or enter a valid URL.'),
+    z.literal(''),
+    z.null(),
+  ])
   .transform((value) => value || null);
 
 export const signupSchema = z.object({
