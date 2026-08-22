@@ -28,7 +28,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
 
   return (
     <AppShell>
-      <main className="destination-dossier">
+      <div className="destination-dossier">
         <section className="destination-dossier-hero">
           <div className="destination-dossier-image"><ImageWithFallback src={city.imageUrl} alt={city.name} sizes="100vw" priority /></div>
           <div className="destination-dossier-overlay page-width">
@@ -70,7 +70,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
             })}
           </div>
         </section>
-      </main>
+      </div>
     </AppShell>
   );
 }

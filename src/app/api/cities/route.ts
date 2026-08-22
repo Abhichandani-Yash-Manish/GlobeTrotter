@@ -39,7 +39,7 @@ export async function GET(request: Request) {
         : false,
     },
     orderBy: [{ popularity: 'desc' }, { name: 'asc' }],
-    take: 50,
+    take: 100,
   });
 
   return apiData(

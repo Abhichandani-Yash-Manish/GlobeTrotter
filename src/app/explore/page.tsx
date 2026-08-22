@@ -15,12 +15,12 @@ export default async function ExplorePage() {
       savedDestinations: { where: { userId: user.id }, select: { id: true } },
     },
     orderBy: [{ popularity: 'desc' }, { name: 'asc' }],
-    take: 50,
+    take: 100,
   });
   const cities: ExploreCity[] = records.map((city) => ({
     ...toCityDto(city),
     saved: city.savedDestinations.length > 0,
     activities: city.activities.map(toActivityDto),
   }));
-  return <AppShell><div className="page-width content-page"><header className="page-heading"><div className="eyebrow">50 DESTINATIONS · LIVE DATABASE</div><h1>Explore the board.</h1><p>Filter by region, cost, and popularity. Save ideas now; turn them into dated stops when the route is ready.</p></header><ExploreClient initialCities={cities} /></div></AppShell>;
+  return <AppShell><div className="page-width content-page"><header className="page-heading"><div className="eyebrow">{cities.length} DESTINATIONS · LIVE DATABASE</div><h1>Explore the board.</h1><p>Filter by region, cost, and popularity. Save ideas now; turn them into dated stops when the route is ready.</p></header><ExploreClient initialCities={cities} /></div></AppShell>;
 }

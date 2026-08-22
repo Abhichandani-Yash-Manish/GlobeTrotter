@@ -19,7 +19,14 @@ export async function GET(
   if (!city) return apiError('NOT_FOUND', 'Destination not found.', 404);
 
   const where: Prisma.ActivityWhereInput = { cityId: id };
-  if (query) where.name = { contains: query };
+  if (query) {
+    where.OR = [
+      { name: { contains: query } },
+      { description: { contains: query } },
+      { address: { contains: query } },
+      { tags: { contains: query } },
+    ];
+  }
   if (category && category !== 'All') where.category = category;
   if (maxCost !== null && Number.isFinite(maxCost) && maxCost >= 0) where.cost = { lte: maxCost };
   if (maxDuration !== null && Number.isFinite(maxDuration) && maxDuration > 0) {
