@@ -1,106 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { z } from 'zod';
+import { apiData, apiError, parseRequest } from '@/lib/api';
+import { getOwnedTripDetail } from '@/lib/trip-data';
+import { toUtcDate, validateStopPlacement } from '@/lib/planner-guards';
+import { stopSchema } from '@/lib/validation';
 
-const addStopSchema = z.object({
-  cityId: z.string(),
-  startDate: z.string(),
-  endDate: z.string(),
-  notes: z.string().optional(),
-});
+type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: Request, { params }: RouteContext) {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  if (!session?.user?.id) return apiError('UNAUTHORIZED', 'Sign in to view trip stops.', 401);
   const { id } = await params;
-
-  const trip = await prisma.trip.findUnique({ where: { id } });
-  if (!trip || trip.userId !== session.user.id) {
-    return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
-  }
-
-  const stops = await prisma.tripStop.findMany({
-    where: { tripId: id },
-    include: {
-      city: true,
-      activities: {
-        include: { activity: true },
-        orderBy: { order: 'asc' },
-      },
-    },
-    orderBy: { order: 'asc' },
-  });
-
-  return NextResponse.json(stops);
+  const detail = await getOwnedTripDetail(session.user.id, id);
+  return detail ? apiData(detail.stops) : apiError('NOT_FOUND', 'Trip not found.', 404);
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, { params }: RouteContext) {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  if (!session?.user?.id) return apiError('UNAUTHORIZED', 'Sign in to add a stop.', 401);
   const { id } = await params;
+  const parsed = await parseRequest(request, stopSchema);
+  if (parsed.response) return parsed.response;
 
-  const trip = await prisma.trip.findUnique({ where: { id } });
-  if (!trip || trip.userId !== session.user.id) {
-    return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
-  }
-
-  const body = await req.json();
-  const result = addStopSchema.safeParse(body);
-
-  if (!result.success) {
-    return NextResponse.json(
-      { error: result.error.errors[0].message },
-      { status: 400 }
-    );
-  }
-
-  const { cityId, startDate, endDate, notes } = result.data;
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  if (end < start) {
-    return NextResponse.json(
-      { error: 'End date must be after start date' },
-      { status: 400 }
-    );
-  }
-
-  // Get the highest current order
-  const maxOrder = await prisma.tripStop.findFirst({
-    where: { tripId: id },
-    orderBy: { order: 'desc' },
-    select: { order: true },
+  const placement = await validateStopPlacement({
+    userId: session.user.id,
+    tripId: id,
+    startDate: parsed.data.startDate,
+    endDate: parsed.data.endDate,
   });
+  if (placement.error) return apiError('INVALID_STOP', placement.error, 409);
 
-  const stop = await prisma.tripStop.create({
-    data: {
-      tripId: id,
-      cityId,
-      startDate: start,
-      endDate: end,
-      order: (maxOrder?.order ?? -1) + 1,
-      notes,
-    },
-    include: {
-      city: true,
-      activities: {
-        include: { activity: true },
+  const city = await prisma.city.findUnique({
+    where: { id: parsed.data.cityId },
+    select: { id: true, imageUrl: true },
+  });
+  if (!city) return apiError('NOT_FOUND', 'Destination not found.', 404);
+
+  await prisma.$transaction(async (transaction) => {
+    const order = await transaction.tripStop.count({ where: { tripId: id } });
+    await transaction.tripStop.create({
+      data: {
+        tripId: id,
+        cityId: city.id,
+        startDate: toUtcDate(parsed.data.startDate),
+        endDate: toUtcDate(parsed.data.endDate),
+        notes: parsed.data.notes || null,
+        order,
       },
-    },
+    });
+    if (!placement.trip.coverImage && city.imageUrl) {
+      await transaction.trip.update({ where: { id }, data: { coverImage: city.imageUrl } });
+    }
   });
 
-  return NextResponse.json(stop, { status: 201 });
+  return apiData(await getOwnedTripDetail(session.user.id, id), 201);
 }

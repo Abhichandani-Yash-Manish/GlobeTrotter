@@ -1,76 +1,66 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { apiData, apiError, parseRequest } from '@/lib/api';
+import { dateKey } from '@/lib/domain';
+import { getOwnedStop, toUtcDate, validateStopPlacement } from '@/lib/planner-guards';
+import { getOwnedTripDetail } from '@/lib/trip-data';
+import { updateStopSchema } from '@/lib/validation';
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; stopId: string }> }
-) {
+type RouteContext = { params: Promise<{ id: string; stopId: string }> };
+
+export async function PUT(request: Request, { params }: RouteContext) {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  if (!session?.user?.id) return apiError('UNAUTHORIZED', 'Sign in to update this stop.', 401);
   const { id, stopId } = await params;
+  const parsed = await parseRequest(request, updateStopSchema);
+  if (parsed.response) return parsed.response;
 
-  const trip = await prisma.trip.findUnique({ where: { id } });
-  if (!trip || trip.userId !== session.user.id) {
-    return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
+  const stop = await getOwnedStop(session.user.id, id, stopId);
+  if (!stop) return apiError('NOT_FOUND', 'Stop not found in this trip.', 404);
+  const startDate = parsed.data.startDate ?? dateKey(stop.startDate);
+  const endDate = parsed.data.endDate ?? dateKey(stop.endDate);
+  if (endDate < startDate) {
+    return apiError('INVALID_DATES', 'Stop end date must be on or after its start date.', 400);
   }
 
-  const body = await req.json();
-  const data: any = {};
-
-  if (body.startDate) data.startDate = new Date(body.startDate);
-  if (body.endDate) data.endDate = new Date(body.endDate);
-  if (body.notes !== undefined) data.notes = body.notes;
-  if (body.order !== undefined) data.order = body.order;
-
-  const stop = await prisma.tripStop.update({
-    where: { id: stopId },
-    data,
-    include: {
-      city: true,
-      activities: {
-        include: { activity: true },
-        orderBy: { order: 'asc' },
-      },
-    },
+  const placement = await validateStopPlacement({
+    userId: session.user.id,
+    tripId: id,
+    startDate,
+    endDate,
+    excludeStopId: stopId,
   });
+  if (placement.error) return apiError('INVALID_STOP', placement.error, 409);
 
-  return NextResponse.json(stop);
+  const data: Prisma.TripStopUpdateInput = {};
+  if (parsed.data.startDate !== undefined) data.startDate = toUtcDate(startDate);
+  if (parsed.data.endDate !== undefined) data.endDate = toUtcDate(endDate);
+  if (parsed.data.notes !== undefined) data.notes = parsed.data.notes || null;
+  await prisma.tripStop.update({ where: { id: stopId }, data });
+  return apiData(await getOwnedTripDetail(session.user.id, id));
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; stopId: string }> }
-) {
+export async function DELETE(_request: Request, { params }: RouteContext) {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  if (!session?.user?.id) return apiError('UNAUTHORIZED', 'Sign in to remove this stop.', 401);
   const { id, stopId } = await params;
+  const stop = await getOwnedStop(session.user.id, id, stopId);
+  if (!stop) return apiError('NOT_FOUND', 'Stop not found in this trip.', 404);
 
-  const trip = await prisma.trip.findUnique({ where: { id } });
-  if (!trip || trip.userId !== session.user.id) {
-    return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
-  }
-
-  await prisma.tripStop.delete({ where: { id: stopId } });
-
-  // Re-order remaining stops
-  const remainingStops = await prisma.tripStop.findMany({
-    where: { tripId: id },
-    orderBy: { order: 'asc' },
+  await prisma.$transaction(async (transaction) => {
+    await transaction.tripStop.delete({ where: { id: stopId } });
+    const remaining = await transaction.tripStop.findMany({
+      where: { tripId: id },
+      orderBy: { order: 'asc' },
+      select: { id: true },
+    });
+    await Promise.all(
+      remaining.map((item, order) =>
+        transaction.tripStop.update({ where: { id: item.id }, data: { order } }),
+      ),
+    );
   });
 
-  for (let i = 0; i < remainingStops.length; i++) {
-    await prisma.tripStop.update({
-      where: { id: remainingStops[i].id },
-      data: { order: i },
-    });
-  }
-
-  return NextResponse.json({ message: 'Stop removed' });
+  return apiData(await getOwnedTripDetail(session.user.id, id));
 }
