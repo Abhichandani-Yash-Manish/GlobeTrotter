@@ -40,7 +40,7 @@ import {
   WalletCards,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { RouteRibbon } from '@/components/route-ribbon';
 import { RouteMap } from '@/components/route-map';
 import { StatusMessage } from '@/components/status-message';
@@ -152,6 +152,7 @@ export function PlannerClient({
   const [activityBoardOpen, setActivityBoardOpen] = useState(false);
   const [mapData, setMapData] = useState(initialMapData);
   const [mobileTab, setMobileTab] = useState<'plan' | 'map' | 'budget'>('plan');
+  const [desktopChartsVisible, setDesktopChartsVisible] = useState(false);
   const [openPanel, setOpenPanel] = useState<'details' | 'crew' | null>(null);
   const [activityFilters, setActivityFilters] = useState({ q: '', category: 'All', maxCost: '', maxDuration: '' });
   const [busy, setBusy] = useState(false);
@@ -168,6 +169,14 @@ export function PlannerClient({
   const urgentIssues = detail.health.filter((issue) => issue.severity !== 'info');
   const canEdit = detail.access === 'OWNER' || detail.access === 'EDITOR' || detail.access === undefined;
   const canPublish = detail.access === 'OWNER' || detail.access === undefined;
+
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 901px)');
+    const update = () => setDesktopChartsVisible(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
 
   function report(text: string, tone: 'success' | 'error' = 'success') {
     setMessage(text);
@@ -531,7 +540,7 @@ export function PlannerClient({
             <strong className="budget-total">{formatMoney(detail.budget.spent)}</strong>
             <p>of {detail.budget.budget === null ? 'no limit set' : formatMoney(detail.budget.budget)}</p>
             {detail.budget.budget !== null && <div className="budget-track"><span style={{ width: `${budgetPercent}%` }} /></div>}
-            <BudgetVisualization detail={detail} compact />
+            {(desktopChartsVisible || mobileTab === 'budget') && <BudgetVisualization detail={detail} compact />}
             <dl className="budget-breakdown">
               {Object.entries(detail.budget.byCategory).map(([category, amount]) => (
                 <div key={category}><dt>{category}</dt><dd>{formatMoney(amount)}</dd></div>
