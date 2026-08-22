@@ -1,34 +1,35 @@
 # Contributing to GlobeTrotter
 
-The goal is a stable demo and genuine, explainable contributions from all three team members.
+Every contribution should be small enough to understand, test, and explain during judging.
 
-## Safe beginner workflow
+## Beginner-safe workflow
 
-1. Start from the latest stable core:
+```bash
+git switch main
+git pull --ff-only
+git switch -c teammate/<short-task-name>
+```
 
-   ```bash
-   git switch codex/globetrotter-core
-   git pull
-   git switch -c teammate/<short-task-name>
-   ```
+1. Change one bounded behavior.
+2. Run the smallest relevant test, then `npm run check` before the pull request.
+3. Review `git diff` and confirm that `.env`, SQLite files, tokens, or generated uploads are absent.
+4. Commit from your own configured GitHub identity.
 
-2. Change one bounded area. Run `npm run check` before committing.
-3. Review `git diff` and make sure no `.env` or database file is included.
-4. Commit under your own GitHub identity:
+```bash
+git add <files-you-understand>
+git commit -m "fix: describe the user-visible improvement"
+git push -u origin teammate/<short-task-name>
+```
 
-   ```bash
-   git add <files-you-changed>
-   git commit -m "fix: describe the user-visible improvement"
-   git push -u origin teammate/<short-task-name>
-   ```
+5. Open a pull request into `main` with the defect, fix, and verification evidence. A teammate reviews it before merge.
 
-5. Open a pull request into `codex/globetrotter-core`. Explain what you tested. A second teammate reviews it before merge.
+Do not share accounts, fabricate authorship, transfer patch files as a substitute for collaboration, or let multiple people push directly to `main`.
 
-Never share a working directory, patch files, account, or direct push to `main`. Agents may explain commands and review diffs, but the teammate who understands and made the change owns the commit.
+## Useful teammate slices
 
-## Suggested teammate slices
+- Mobile/keyboard QA: reproduce one issue at 375 px, fix it, and document the before/after behavior.
+- Clean-clone QA: follow the README on another machine, correct one real setup gap, and update the demo checklist.
+- Data review: verify a showcase destination’s POIs, facts, imagery attribution, and filters; fix one evidence-backed issue.
+- Access review: exercise owner/editor/viewer behavior and add a focused regression test.
 
-- Teammate 2: test at 375px, keyboard through login/planner, fix one issue, and explain the before/after behavior.
-- Teammate 3: perform the clean-clone setup from the README, correct any missing step, add final screenshots, and explain the ERD.
-
-Keep each pull request small enough to review in ten minutes.
+Keep a pull request reviewable in roughly ten minutes.
