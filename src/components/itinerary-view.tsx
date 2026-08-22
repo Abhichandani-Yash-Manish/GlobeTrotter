@@ -50,7 +50,7 @@ export function ItineraryView({ detail, mapData }: { detail: TripDetail; mapData
               const dayExpenses = detail.expenses.filter((expense) => expense.date === day);
               const dayTotal = activities.reduce((total, item) => total + item.cost, 0) + dayExpenses.reduce((total, item) => total + item.amount, 0);
               return (
-                <details key={day} className={`calendar-day ${detail.budget.overBudgetDays.includes(day) ? 'calendar-day-over' : ''}`} open={index === 0}>
+                <details key={day} className={`calendar-day ${detail.budget.overBudgetDays.includes(day) ? 'calendar-day-over' : ''}`} open>
                   <summary><span>DAY {String(index + 1).padStart(2, '0')}</span><strong>{day.slice(5)}</strong></summary>
                   <p>{stop?.city.name ?? 'In transit'}</p>
                   {activities.map((activity) => <small key={activity.id}><Clock3 size={11} /> {activity.startTime ?? 'Flex'} · {activity.activity.name}</small>)}
