@@ -1,12 +1,8 @@
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import type { City } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { createPrismaClient } from '../src/lib/create-prisma-client';
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? 'file:./prisma/dev.db',
-});
-const prisma = new PrismaClient({ adapter });
+const prisma = createPrismaClient();
 
 const cities = [
   { name: 'Paris', country: 'France', region: 'Europe', costIndex: 4.2, popularity: 4.9, description: 'The City of Light, known for the Eiffel Tower, Louvre Museum, and world-class cuisine.', latitude: 48.8566, longitude: 2.3522, imageUrl: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600' },
