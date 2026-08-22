@@ -625,6 +625,10 @@ summary::-webkit-details-marker { display: none; }
   .recommendation-strip { grid-template-columns: repeat(2, 1fr); }
   .planner-route-panel { display: none; }
   .planner-mobile-route { display: block; max-width: 100%; margin: 0 auto 12px; padding: 12px; overflow-x: auto; border: 1px solid var(--line); background: white; }
+  .planner-mobile-route .route-ribbon-compact li { min-width: 115px; grid-template-columns: 23px 1fr; gap: 6px; }
+  .planner-mobile-route .route-node { width: 23px; height: 23px; }
+  .planner-mobile-route .route-copy strong { font-size: 1rem; }
+  .planner-mobile-route .route-copy small { font-size: .58rem; }
   .planner-mobile-tabs { display: grid; position: sticky; top: 0; z-index: 12; max-width: 100%; grid-template-columns: repeat(3, 1fr); margin: 0 auto 12px; padding: 5px; border: 1px solid var(--line); border-radius: 7px; background: rgba(255,255,255,.95); backdrop-filter: blur(12px); }
   .planner-mobile-tabs button { display: flex; min-height: 42px; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 4px; color: var(--muted); background: transparent; font-size: .72rem; font-weight: 800; }
   .planner-mobile-tabs button.active { color: white; background: var(--navy); }
@@ -676,10 +680,11 @@ summary::-webkit-details-marker { display: none; }
   .auth-visual h2 { font-size: 2.8rem; }
   .auth-panel { width: calc(100% - 30px); }
   .app-header-row { gap: 12px; }
-  .account-block form { display: none; }
+  .account-block .text-button { font-size: .66rem; }
   .app-nav a { padding: 0 9px; font-size: .72rem; }
   .app-nav span { display: none; }
   .content-page { padding-block: 40px 70px; }
+  .page-heading h1, .dashboard-heading h1 { font-size: 2.9rem; }
   .page-heading-row, .dashboard-heading, .section-title-row, .planner-titlebar, .trip-detail-overlay { align-items: start; flex-direction: column; }
   .dashboard-metrics { grid-template-columns: 1fr; }
   .next-trip-copy dl { grid-template-columns: 1fr; }

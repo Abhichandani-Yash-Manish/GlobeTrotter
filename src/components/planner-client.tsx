@@ -446,7 +446,7 @@ export function PlannerClient({
         <aside className="planner-route-panel planner-plan-region">
           <div className="panel-heading"><span>ROUTE BOARD</span><strong>{detail.stops.length}</strong></div>
           <RouteRibbon stops={detail.stops} health={detail.health} />
-          <details className="add-stop-panel" open={detail.stops.length === 0}>
+          {canEdit && <details className="add-stop-panel" open={detail.stops.length === 0}>
             <summary><Plus size={16} /> Add destination</summary>
             <form className="mini-search" onSubmit={searchCities}>
               <input name="q" aria-label="Search destinations" placeholder="Search city or country" />
@@ -466,12 +466,12 @@ export function PlannerClient({
               <label>Notes<input name="notes" maxLength={500} placeholder="Train at 08:10, check-in after 3" /></label>
               <button className="button button-primary button-small" type="submit" disabled={busy}><Plus size={15} /> Add to route</button>
             </form>
-          </details>
+          </details>}
         </aside>
 
         <section className="planner-canvas planner-plan-region" aria-label="Itinerary stops">
           <div className="canvas-heading">
-            <div><span>STOP CANVAS</span><p>Drag the grip to change the route order.</p></div>
+            <div><span>STOP CANVAS</span><p>{canEdit ? 'Drag the grip to change the route order.' : 'Read-only crew view. The owner controls your access.'}</p></div>
             {busy && <LoaderCircle className="spin" size={19} aria-label="Saving" />}
           </div>
           {detail.stops.length === 0 ? (
@@ -548,7 +548,7 @@ export function PlannerClient({
                     </span>
                     <span className="recorded-cost-actions">
                       <span className="mono">{formatMoney(expense.amount)}</span>
-                      <button
+                      {canEdit && <button
                         className="icon-button danger recorded-cost-remove"
                         type="button"
                         onClick={() => deleteExpense(expense.id, expense.description)}
@@ -556,7 +556,7 @@ export function PlannerClient({
                         aria-label={`Remove ${expense.description || expense.category} cost`}
                       >
                         <Trash2 size={13} />
-                      </button>
+                      </button>}
                     </span>
                     {canEdit && <details className="quick-edit expense-quick-edit"><summary><Pencil size={12} /> Edit cost</summary><form className="quick-edit-form" onSubmit={(event) => updateExpense(expense.id, event)}><label>Category<select name="category" defaultValue={expense.category}><option>Transport</option><option>Stay</option><option>Meals</option><option>Miscellaneous</option></select></label><label>Amount<input name="amount" type="number" min="0.01" step="0.01" defaultValue={expense.amount} required /></label><label>Date<input name="date" type="date" min={detail.trip.startDate} max={detail.trip.endDate} defaultValue={expense.date} required /></label><label>Stop<select name="tripStopId" defaultValue={expense.tripStopId ?? ''}><option value="">Whole trip</option>{detail.stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.city.name}</option>)}</select></label><label className="full-field">Label<input name="description" maxLength={180} defaultValue={expense.description ?? ''} /></label><button className="button button-dark button-small" type="submit" disabled={busy}>Save cost</button></form></details>}
                   </div>
